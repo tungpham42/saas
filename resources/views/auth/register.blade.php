@@ -211,16 +211,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Theme Toggle -->
-            <div class="mt-6 text-center">
-                <button @click="toggleTheme()" class="text-sm text-amber-500 hover:text-amber-600 inline-flex items-center gap-1">
-                    <i x-show="!isDarkMode" class="fas fa-moon"></i>
-                    <i x-show="isDarkMode" class="fas fa-sun"></i>
-                    <span x-show="!isDarkMode">Dark Mode</span>
-                    <span x-show="isDarkMode">Light Mode</span>
-                </button>
-            </div>
         </div>
 
         <!-- Footer -->

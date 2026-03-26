@@ -130,16 +130,6 @@
                     <a href="{{ route('register') }}" class="text-amber-600 hover:text-amber-700 font-semibold">Join our family</a>
                 </p>
             </div>
-
-            <!-- Theme Toggle -->
-            <div class="mt-6 pt-6 border-t border-amber-100 dark:border-gray-700 text-center">
-                <button @click="toggleTheme()" class="inline-flex items-center gap-2 text-amber-500 hover:text-amber-600">
-                    <i x-show="!isDarkMode" class="fas fa-moon"></i>
-                    <i x-show="isDarkMode" class="fas fa-sun"></i>
-                    <span x-show="!isDarkMode">Switch to Dark Mode</span>
-                    <span x-show="isDarkMode">Switch to Light Mode</span>
-                </button>
-            </div>
         </div>
 
         <!-- Footer -->
