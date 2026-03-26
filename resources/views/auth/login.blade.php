@@ -14,6 +14,12 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -73,6 +79,12 @@
     </style>
 </head>
 <body :class="{ 'dark': isDarkMode }" class="min-h-screen flex items-center justify-center py-12 px-4 transition-colors duration-300">
+
+    <button @click="toggleTheme()"
+            class="fixed top-6 right-6 p-3 rounded-2xl bg-white dark:bg-gray-800 shadow-lg border border-amber-100 dark:border-gray-700 transition-all hover:scale-110 active:scale-95 z-50">
+        <i x-show="!isDarkMode" class="fas fa-moon text-amber-600"></i>
+        <i x-show="isDarkMode" class="fas fa-sun text-amber-400"></i>
+    </button>
     <div class="max-w-md w-full animate-gentle">
         <!-- Logo -->
         <div class="text-center mb-8">
