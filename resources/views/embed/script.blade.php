@@ -105,7 +105,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
-        .ai-chat-window input:focus {
+        .ai-chat-window input, .ai-chat-window input:focus {
             color: ${settings.textColor} !important;
         }
 
