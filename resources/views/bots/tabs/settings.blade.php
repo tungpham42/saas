@@ -42,7 +42,7 @@
                            placeholder="Enter your API key">
                 </div>
 
-                <div class="md:col-span-2">
+                <div>
                     <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
                         <i class="fas fa-cube mr-2 text-amber-500"></i>Model Name
                     </label>
