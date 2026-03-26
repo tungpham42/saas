@@ -6,6 +6,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Join Us - SaaS AI Chatbot</title>
 
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -99,7 +103,7 @@
         <i x-show="!isDarkMode" class="fas fa-moon text-amber-600"></i>
         <i x-show="isDarkMode" class="fas fa-sun text-amber-400"></i>
     </button>
-    
+
     <div class="max-w-md w-full animate-gentle">
         <!-- Logo -->
         <div class="text-center mb-8">
