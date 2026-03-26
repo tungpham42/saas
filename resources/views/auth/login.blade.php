@@ -20,8 +20,14 @@
         }
     </script>
 
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         * {
@@ -76,6 +82,14 @@
             background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
             color: #fef3c7;
         }
+        .card-warm {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+        }
+        .dark .card-warm {
+            background: #1f2937;
+        }
     </style>
 </head>
 <body :class="{ 'dark': isDarkMode }" class="min-h-screen flex items-center justify-center py-12 px-4 transition-colors duration-300">
@@ -85,6 +99,7 @@
         <i x-show="!isDarkMode" class="fas fa-moon text-amber-600"></i>
         <i x-show="isDarkMode" class="fas fa-sun text-amber-400"></i>
     </button>
+
     <div class="max-w-md w-full animate-gentle">
         <!-- Logo -->
         <div class="text-center mb-8">
