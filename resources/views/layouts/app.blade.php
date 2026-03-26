@@ -42,7 +42,7 @@
             color: #e8e6e3;
         }
 
-        .dark nav {
+        .dark nav#topnav {
             background: rgba(120, 53, 15, 0.6) !important;
             border-color: rgba(120, 53, 15, 0.3) !important;
         }
@@ -275,7 +275,7 @@
 
     <div class="min-h-screen">
         <!-- Navigation - Warm & Cozy -->
-        <nav class="fixed w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm z-50 transition-all duration-300 border-b border-amber-100 dark:border-amber-900/30">
+        <nav id="topnav" class="fixed w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm z-50 transition-all duration-300 border-b border-amber-100 dark:border-amber-900/30">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center">
