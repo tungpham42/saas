@@ -16,39 +16,9 @@ class WebhookController extends Controller
         $this->channelService = $channelService;
     }
 
-    public function handle(Request $request, string $type)
-    {
-        $apiKey = $request->query('api_key');
-        $channelId = (int) $request->query('channel_id');
-
-        $bot = Bot::where('api_key', $apiKey)->first();
-
-        if (!$bot) {
-            return response()->json(['error' => 'Invalid API Key'], 401);
-        }
-
-        $channel = $bot->channels()->find($channelId);
-
-        if (!$channel || !$channel->is_active) {
-            return response()->json(['status' => 'channel_disabled']);
-        }
-
-        // Handle verification for Facebook and WhatsApp
-        if ($request->isMethod('get')) {
-            $challenge = $this->channelService->verifyWebhook($channel, $request->query());
-            if ($challenge) {
-                return response($challenge, 200);
-            }
-            return response()->json(['error' => 'Verification failed'], 403);
-        }
-
-        // Handle incoming messages
-        $payload = $request->json()->all();
-        $this->channelService->handleWebhook($bot, $channel, $payload);
-
-        return response()->json(['status' => 'ok']);
-    }
-
+    /**
+     * Serve the embed JavaScript
+     */
     public function serveEmbed(Request $request)
     {
         $apiKey = $request->query('api_key');
@@ -63,19 +33,19 @@ class WebhookController extends Controller
         $pollUrl = route('api.poll');
         $leadUrl = route('api.capture-lead');
 
-        $color = json_encode($bot->ui_color ?? '#1677ff');
-        $bg = json_encode($bot->ui_bg_color ?? '#FFFFFF');
-        $textColor = json_encode($bot->ui_text_color ?? '#333333');
-        $title = json_encode($bot->ui_title ?? 'AI Assistant');
-        $welcomeMsg = json_encode($bot->ui_welcome_msg ?? 'Hello! How can I help you today?');
-        $placeholder = json_encode($bot->ui_placeholder ?? 'Type a message...');
-        $btnText = json_encode($bot->ui_btn_text ?? 'Send');
-        $posBottom = json_encode($bot->ui_pos_bottom ?? '20px');
-        $posRight = json_encode($bot->ui_pos_right ?? '20px');
-        $posLeft = json_encode($bot->ui_pos_left ?? 'auto');
-        $triggerRadius = json_encode($bot->ui_trigger_border_radius ?? '50%');
+        $color = json_encode($bot->ui_color);
+        $bg = json_encode($bot->ui_bg_color);
+        $textColor = json_encode($bot->ui_text_color ?: '#333333');
+        $title = json_encode($bot->ui_title);
+        $welcomeMsg = json_encode($bot->ui_welcome_msg ?: 'Hello! How can I help you today?');
+        $placeholder = json_encode($bot->ui_placeholder ?: 'Type a message...');
+        $btnText = json_encode($bot->ui_btn_text ?: 'Send');
+        $posBottom = json_encode($bot->ui_pos_bottom ?: '20px');
+        $posRight = json_encode($bot->ui_pos_right ?: '20px');
+        $posLeft = json_encode($bot->ui_pos_left ?: 'auto');
+        $triggerRadius = json_encode($bot->ui_trigger_border_radius ?: '50%');
 
-        $triggerIconRaw = $bot->ui_trigger_icon ?? '💬';
+        $triggerIconRaw = $bot->ui_trigger_icon ?: '💬';
         if (filter_var($triggerIconRaw, FILTER_VALIDATE_URL)) {
             $triggerIcon = "<img src='" . e($triggerIconRaw) . "' style='width:100%; height:100%; border-radius:{$triggerRadius}; object-fit:cover; pointer-events:none;' alt='Chat' />";
         } else {
@@ -89,11 +59,11 @@ class WebhookController extends Controller
         $clearOnClose = $bot->ui_clear_on_close ? 'true' : 'false';
         $preChatEnabled = $bot->ui_pre_chat_form ? 'true' : 'false';
 
-        $preChatMsg = json_encode($bot->ui_pre_chat_msg ?? 'Please enter your information to start support:');
-        $preChatNameLabel = json_encode($bot->ui_pre_chat_name_label ?? 'Full Name *');
-        $preChatPhoneLabel = json_encode($bot->ui_pre_chat_phone_label ?? 'Phone Number *');
-        $preChatBtnText = json_encode($bot->ui_pre_chat_btn_text ?? 'Start Chat');
-        $preChatErrorMsg = json_encode($bot->ui_pre_chat_error_msg ?? 'Please fill in all required information.');
+        $preChatMsg = json_encode($bot->ui_pre_chat_msg ?: 'Please enter your information to start support:');
+        $preChatNameLabel = json_encode($bot->ui_pre_chat_name_label ?: 'Full Name *');
+        $preChatPhoneLabel = json_encode($bot->ui_pre_chat_phone_label ?: 'Phone Number *');
+        $preChatBtnText = json_encode($bot->ui_pre_chat_btn_text ?: 'Start Chat');
+        $preChatErrorMsg = json_encode($bot->ui_pre_chat_error_msg ?: 'Please fill in all required information.');
 
         $js = view('embed.script', compact(
             'apiKey', 'apiUrl', 'pollUrl', 'leadUrl',
@@ -109,6 +79,9 @@ class WebhookController extends Controller
             ->header('Access-Control-Allow-Origin', '*');
     }
 
+    /**
+     * Handle chat request
+     */
     public function chat(Request $request)
     {
         $apiKey = $request->input('api_key');
@@ -126,6 +99,9 @@ class WebhookController extends Controller
         return response()->json($response);
     }
 
+    /**
+     * Poll for new messages
+     */
     public function poll(Request $request)
     {
         $apiKey = $request->query('api_key');
@@ -152,6 +128,9 @@ class WebhookController extends Controller
         return response()->json(['messages' => $messages]);
     }
 
+    /**
+     * Capture lead from pre-chat form
+     */
     public function captureLead(Request $request)
     {
         $apiKey = $request->input('api_key');
@@ -176,5 +155,189 @@ class WebhookController extends Controller
         }
 
         return response()->json(['error' => 'Missing data'], 400);
+    }
+
+    /**
+     * Handle Facebook webhook
+     */
+    public function handleFacebook(Request $request)
+    {
+        $apiKey = $request->query('api_key');
+        $channelId = (int) $request->query('channel_id');
+
+        $bot = Bot::where('api_key', $apiKey)->first();
+
+        if (!$bot) {
+            return response()->json(['error' => 'Invalid API Key'], 401);
+        }
+
+        $channel = $bot->channels()->find($channelId);
+
+        if (!$channel || !$channel->is_active) {
+            return response()->json(['status' => 'channel_disabled']);
+        }
+
+        // Handle verification for GET requests
+        if ($request->isMethod('get')) {
+            $verifyToken = $channel->config['fb_verify_token'] ?? '';
+            $hubMode = $request->query('hub_mode');
+            $hubVerifyToken = $request->query('hub_verify_token');
+            $hubChallenge = $request->query('hub_challenge');
+
+            if ($hubMode === 'subscribe' && $hubVerifyToken === $verifyToken) {
+                return response($hubChallenge, 200);
+            }
+            return response()->json(['error' => 'Verification failed'], 403);
+        }
+
+        // Handle incoming messages for POST requests
+        $payload = $request->json()->all();
+        $this->channelService->handleFacebook($bot, $channel, $payload);
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Handle Zalo webhook
+     */
+    public function handleZalo(Request $request)
+    {
+        $apiKey = $request->query('api_key');
+        $channelId = (int) $request->query('channel_id');
+
+        $bot = Bot::where('api_key', $apiKey)->first();
+
+        if (!$bot) {
+            return response()->json(['error' => 'Invalid API Key'], 401);
+        }
+
+        $channel = $bot->channels()->find($channelId);
+
+        if (!$channel || !$channel->is_active) {
+            return response()->json(['status' => 'channel_disabled']);
+        }
+
+        $payload = $request->json()->all();
+        $this->channelService->handleZalo($bot, $channel, $payload);
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Handle TikTok webhook
+     */
+    public function handleTikTok(Request $request)
+    {
+        $apiKey = $request->query('api_key');
+        $channelId = (int) $request->query('channel_id');
+
+        $bot = Bot::where('api_key', $apiKey)->first();
+
+        if (!$bot) {
+            return response()->json(['error' => 'Invalid API Key'], 401);
+        }
+
+        $channel = $bot->channels()->find($channelId);
+
+        if (!$channel || !$channel->is_active) {
+            return response()->json(['status' => 'channel_disabled']);
+        }
+
+        $payload = $request->json()->all();
+        $this->channelService->handleTikTok($bot, $channel, $payload);
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Handle Shopee webhook
+     */
+    public function handleShopee(Request $request)
+    {
+        $apiKey = $request->query('api_key');
+        $channelId = (int) $request->query('channel_id');
+
+        $bot = Bot::where('api_key', $apiKey)->first();
+
+        if (!$bot) {
+            return response()->json(['error' => 'Invalid API Key'], 401);
+        }
+
+        $channel = $bot->channels()->find($channelId);
+
+        if (!$channel || !$channel->is_active) {
+            return response()->json(['status' => 'channel_disabled']);
+        }
+
+        $payload = $request->json()->all();
+        $this->channelService->handleShopee($bot, $channel, $payload);
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Handle Zalo Personal webhook
+     */
+    public function handleZaloPersonal(Request $request)
+    {
+        $apiKey = $request->query('api_key');
+        $channelId = (int) $request->query('channel_id');
+
+        $bot = Bot::where('api_key', $apiKey)->first();
+
+        if (!$bot) {
+            return response()->json(['error' => 'Invalid API Key'], 401);
+        }
+
+        $channel = $bot->channels()->find($channelId);
+
+        if (!$channel || !$channel->is_active) {
+            return response()->json(['status' => 'channel_disabled']);
+        }
+
+        $payload = $request->json()->all();
+        $this->channelService->handleZaloPersonal($bot, $channel, $payload);
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    /**
+     * Handle WhatsApp webhook
+     */
+    public function handleWhatsApp(Request $request)
+    {
+        $apiKey = $request->query('api_key');
+        $channelId = (int) $request->query('channel_id');
+
+        $bot = Bot::where('api_key', $apiKey)->first();
+
+        if (!$bot) {
+            return response()->json(['error' => 'Invalid API Key'], 401);
+        }
+
+        $channel = $bot->channels()->find($channelId);
+
+        if (!$channel || !$channel->is_active) {
+            return response()->json(['status' => 'channel_disabled']);
+        }
+
+        // Handle verification for GET requests
+        if ($request->isMethod('get')) {
+            $verifyToken = $channel->config['whatsapp_verify_token'] ?? '';
+            $hubMode = $request->query('hub_mode');
+            $hubVerifyToken = $request->query('hub_verify_token');
+            $hubChallenge = $request->query('hub_challenge');
+
+            if ($hubMode === 'subscribe' && $hubVerifyToken === $verifyToken) {
+                return response($hubChallenge, 200);
+            }
+            return response()->json(['error' => 'Verification failed'], 403);
+        }
+
+        // Handle incoming messages for POST requests
+        $payload = $request->json()->all();
+        $this->channelService->handleWhatsApp($bot, $channel, $payload);
+
+        return response()->json(['status' => 'ok']);
     }
 }

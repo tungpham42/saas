@@ -32,11 +32,17 @@ class Channel extends Model
             default => 'webhook',
         };
 
-        return route('api.webhook', [
-            'type' => $webhookPath,
-            'api_key' => $this->bot->api_key,
-            'channel_id' => $this->id
-        ]);
+        $routeName = match($this->channel_type) {
+            'fb' => 'api.webhook.fb',
+            'zalo' => 'api.webhook.zalo',
+            'tt' => 'api.webhook.tiktok',
+            'sp' => 'api.webhook.shopee',
+            'zlpn' => 'api.webhook.zalo-personal',
+            'wa' => 'api.webhook.whatsapp',
+            default => 'api.webhook.fb',
+        };
+
+        return route($routeName, ['api_key' => $this->bot->api_key, 'channel_id' => $this->id]);
     }
 
     public function getChannelIcon(): string
