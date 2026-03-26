@@ -4,19 +4,20 @@
     $isBot = $message->role === 'bot';
 
     $align = $isUser ? 'justify-end' : 'justify-start';
-    $bgClass = $isUser ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' :
-               ($isAdmin ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' : 'bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600');
-    $roleLabel = $isUser ? 'You' : ($isAdmin ? 'Admin' : 'AI Assistant');
+    $bgClass = $isUser ? 'gradient-warm text-amber-900' :
+               ($isAdmin ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800' :
+               'bg-white dark:bg-gray-700 border border-amber-200 dark:border-gray-600 text-amber-800 dark:text-amber-200');
+    $roleLabel = $isUser ? 'You' : ($isAdmin ? '✨ Helper' : '🤖 AI Friend');
     $roleIcon = $isUser ? 'fa-user' : ($isAdmin ? 'fa-user-tie' : 'fa-robot');
     $time = \Carbon\Carbon::parse($message->created_at)->format('H:i');
     $date = \Carbon\Carbon::parse($message->created_at)->format('M d, Y');
     $isFirstInGroup = $loop->first ?? false;
 @endphp
 
-<div class="flex {{ $align }} animate-fade-in-up group">
+<div class="flex {{ $align }} animate-gentle group">
     <div class="max-w-[75%] {{ $bgClass }} rounded-2xl shadow-sm overflow-hidden">
-        <div class="px-4 py-2 {{ $isUser ? 'bg-blue-600/20' : ($isAdmin ? 'bg-green-600/20' : 'bg-gray-100 dark:bg-gray-600/30') }}">
-            <div class="flex items-center gap-2 text-xs {{ $isUser ? 'text-blue-100' : ($isAdmin ? 'text-green-100' : 'text-gray-500 dark:text-gray-400') }}">
+        <div class="px-4 py-2 {{ $isUser ? 'bg-amber-100/50 dark:bg-amber-900/30' : ($isAdmin ? 'bg-green-100/50 dark:bg-green-900/20' : 'bg-amber-50 dark:bg-gray-800') }}">
+            <div class="flex items-center gap-2 text-xs {{ $isUser ? 'text-amber-700' : ($isAdmin ? 'text-green-700 dark:text-green-400' : 'text-amber-500 dark:text-amber-400') }}">
                 <i class="fas {{ $roleIcon }}"></i>
                 <span class="font-medium">{{ $roleLabel }}</span>
                 <span>•</span>
@@ -34,7 +35,7 @@
         </div>
         <div class="px-4 py-1 text-right opacity-0 group-hover:opacity-100 transition">
             <button onclick="copyMessage('{{ addslashes($message->content) }}')"
-                    class="text-xs {{ $isUser ? 'text-blue-200' : ($isAdmin ? 'text-green-200' : 'text-gray-400') }} hover:text-white transition">
+                    class="text-xs {{ $isUser ? 'text-amber-600' : ($isAdmin ? 'text-green-600' : 'text-amber-400') }} hover:text-amber-600 transition">
                 <i class="fas fa-copy"></i> Copy
             </button>
         </div>
@@ -47,7 +48,7 @@ function copyMessage(text) {
     navigator.clipboard.writeText(text);
     Swal.fire({
         icon: 'success',
-        title: 'Copied!',
+        title: 'Copied! 📋',
         text: 'Message copied to clipboard',
         toast: true,
         timer: 2000,
@@ -57,20 +58,3 @@ function copyMessage(text) {
 }
 </script>
 @endpush
-
-<style>
-@keyframes fade-in-up {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.animate-fade-in-up {
-    animation: fade-in-up 0.3s ease-out;
-}
-</style>

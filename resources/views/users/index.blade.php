@@ -1,75 +1,74 @@
 @extends('layouts.app')
 
-@section('title', 'Manage Users - SaaS AI Chatbot')
+@section('title', 'Community Members - SaaS AI Chatbot')
 
 @section('content')
 <div class="space-y-8">
     <!-- Header -->
-    <div class="flex flex-wrap justify-between items-center gap-4 animate-fade-in-up">
+    <div class="flex flex-wrap justify-between items-center gap-4 animate-gentle">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">User Management</h1>
-            <p class="text-gray-600 dark:text-gray-400 mt-1">Manage platform users and their subscriptions</p>
+            <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">Community Members 🌟</h1>
+            <p class="text-amber-600 dark:text-amber-400 mt-1">Meet the wonderful people using our platform</p>
         </div>
-        <a href="{{ route('users.create') }}" class="btn-primary px-5 py-3 rounded-xl text-white font-semibold flex items-center gap-2">
+        <a href="{{ route('users.create') }}" class="btn-soft inline-flex items-center gap-2">
             <i class="fas fa-user-plus"></i>
-            <span>Add User</span>
+            <span>Welcome New Member</span>
         </a>
     </div>
 
     <!-- Users Table -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden animate-fade-in-up" style="animation-delay: 0.1s">
+    <div class="card-warm overflow-hidden animate-gentle" style="animation-delay: 0.1s">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700/50">
+            <table class="table-warm">
+                <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">User</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Bots</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Plan</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Subscription</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                        <th>Member</th>
+                        <th>Email</th>
+                        <th>Bots</th>
+                        <th>Plan</th>
+                        <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody>
                     @forelse($users as $user)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                        <td class="px-6 py-4">
+                    <tr class="hover:bg-amber-50 dark:hover:bg-gray-800 transition-colors">
+                        <td>
                             <div class="flex items-center gap-3">
-                                <div class="gradient-primary rounded-full w-10 h-10 flex items-center justify-center">
-                                    <span class="text-white font-bold">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                <div class="gradient-warm rounded-full w-10 h-10 flex items-center justify-center">
+                                    <span class="text-amber-900 font-bold">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
                                 </div>
-                                <span class="font-medium text-gray-900 dark:text-white">{{ $user->name }}</span>
+                                <span class="font-medium text-amber-800 dark:text-amber-200">{{ $user->name }}</span>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-gray-600 dark:text-gray-300">{{ $user->email }}</td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+                        <td class="text-amber-700 dark:text-amber-300">{{ $user->email }}</td>
+                        <td>
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 dark:bg-gray-700 rounded-full text-sm">
+                                <i class="fas fa-robot text-amber-500"></i>
                                 {{ $user->bots_count }} / {{ $user->bot_limit }}
                             </span>
                         </td>
-                        <td class="px-6 py-4">
+                        <td>
                             <div class="text-sm">
-                                <span class="font-medium text-gray-900 dark:text-white">${{ max(0, $user->bot_limit - 1) * 2 }}/mo</span>
-                                <div class="text-xs text-gray-500">Base + {{ max(0, $user->bot_limit - 1) }} add-ons</div>
+                                <span class="font-medium text-amber-800 dark:text-amber-200">${{ max(0, $user->bot_limit - 1) * 2 }}/mo</span>
+                                <div class="text-xs text-amber-500">Base + {{ max(0, $user->bot_limit - 1) }} bots</div>
                             </div>
                         </td>
-                        <td class="px-6 py-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {{ $user->paypal_sub_status === 'Active' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400' }}">
+                        <td>
+                            <span class="status-badge {{ $user->paypal_sub_status === 'Active' ? 'status-active' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }}">
+                                <i class="fas {{ $user->paypal_sub_status === 'Active' ? 'fa-heart' : 'fa-clock' }}"></i>
                                 {{ $user->paypal_sub_status }}
                             </span>
-                            @if($user->paypal_sub_id)
-                            <div class="text-xs text-gray-500 mt-1 font-mono">{{ substr($user->paypal_sub_id, 0, 15) }}...</div>
-                            @endif
                         </td>
-                        <td class="px-6 py-4">
+                        <td>
                             <div class="flex gap-2">
-                                <a href="{{ route('users.edit', $user) }}" class="text-blue-600 hover:text-blue-800 transition" title="Edit">
+                                <a href="{{ route('users.edit', $user) }}" class="text-amber-600 hover:text-amber-700 transition" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirmDeleteUser(this)">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 transition" title="Delete">
+                                    <button type="submit" class="text-red-500 hover:text-red-600 transition" title="Remove">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
@@ -78,9 +77,10 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
-                            <i class="fas fa-users text-4xl mb-3 opacity-50"></i>
-                            <p>No users found</p>
+                        <td colspan="6" class="p-12 text-center">
+                            <div class="text-6xl mb-4">🌟</div>
+                            <p class="text-amber-600 dark:text-amber-400">No members yet</p>
+                            <p class="text-sm text-amber-500 mt-1">Invite someone to join the community</p>
                         </td>
                     </tr>
                     @endforelse
@@ -88,9 +88,8 @@
             </table>
         </div>
 
-        <!-- Pagination -->
         @if($users->hasPages())
-        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="px-6 py-4 border-t border-amber-100 dark:border-gray-700">
             {{ $users->links() }}
         </div>
         @endif
@@ -101,18 +100,16 @@
 <script>
 function confirmDeleteUser(form) {
     Swal.fire({
-        title: 'Delete User?',
-        text: 'This action cannot be undone. All user data and bots will be permanently deleted.',
+        title: 'Remove member? 💔',
+        text: 'This will delete all their bots and memories. This cannot be undone.',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#ef4444',
+        confirmButtonColor: '#f59e0b',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Yes, delete user!',
+        confirmButtonText: 'Yes, remove',
         cancelButtonText: 'Cancel'
     }).then((result) => {
-        if (result.isConfirmed) {
-            form.submit();
-        }
+        if (result.isConfirmed) form.submit();
     });
     return false;
 }

@@ -5,21 +5,35 @@
 @section('content')
 <div class="max-w-2xl mx-auto space-y-6">
     <!-- Header -->
-    <div class="animate-fade-in-up">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">My Profile</h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">Manage your account settings</p>
+    <div class="animate-gentle">
+        <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">My Profile 🌟</h1>
+        <p class="text-amber-600 dark:text-amber-400 mt-1">Your personal space in the community</p>
     </div>
 
     <!-- Profile Card -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" style="animation-delay: 0.1s">
-        <div class="gradient-primary px-6 py-4">
-            <div class="flex items-center gap-3">
-                <div class="bg-white/20 rounded-full w-12 h-12 flex items-center justify-center">
-                    <i class="fas fa-user text-white text-xl"></i>
+    <div class="card-warm overflow-hidden animate-gentle" style="animation-delay: 0.1s">
+        <div class="gradient-warm px-6 py-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-white/20 rounded-full w-20 h-20 flex items-center justify-center">
+                    <i class="fas fa-user-circle text-amber-900 text-5xl"></i>
                 </div>
                 <div>
-                    <h2 class="text-white font-bold text-lg">{{ $user->name }}</h2>
-                    <p class="text-white/70 text-sm">{{ $user->email }}</p>
+                    <h2 class="text-amber-900 font-bold text-2xl">{{ $user->name }}</h2>
+                    <p class="text-amber-800/70 text-sm">{{ $user->email }}</p>
+                    <div class="flex items-center gap-2 mt-1">
+                        @if($user->hasVerifiedEmail())
+                            <span class="text-xs bg-green-500/20 text-green-700 px-2 py-0.5 rounded-full">
+                                <i class="fas fa-check-circle"></i> Verified
+                            </span>
+                        @else
+                            <span class="text-xs bg-yellow-500/20 text-yellow-700 px-2 py-0.5 rounded-full">
+                                <i class="fas fa-envelope"></i> Not Verified
+                            </span>
+                        @endif
+                        <span class="text-xs bg-amber-500/20 text-amber-700 px-2 py-0.5 rounded-full">
+                            <i class="fas fa-calendar"></i> Member since {{ $user->created_at->format('M Y') }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -29,85 +43,92 @@
             @method('PUT')
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    <i class="fas fa-user-circle mr-2 text-blue-500"></i>Full Name
+                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                    <i class="fas fa-user-circle mr-2 text-amber-500"></i>Your Name
                 </label>
                 <input type="text" name="name" value="{{ old('name', $user->name) }}" required
-                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                       class="input-warm w-full">
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    <i class="fas fa-envelope mr-2 text-blue-500"></i>Email Address
+                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                    <i class="fas fa-envelope mr-2 text-amber-500"></i>Email Address
                 </label>
                 <input type="email" name="email" value="{{ old('email', $user->email) }}" required
-                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                       class="input-warm w-full">
+                @if(!$user->hasVerifiedEmail())
+                    <p class="mt-1 text-xs text-amber-500">
+                        <i class="fas fa-info-circle"></i>
+                        <a href="{{ route('verification.notice') }}" class="text-amber-600 hover:underline">Verify your email</a> to access all features.
+                    </p>
+                @endif
             </div>
 
-            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <i class="fas fa-lock text-yellow-500"></i>
-                    <span>Change Password</span>
+            <div class="border-t border-amber-100 dark:border-gray-700 pt-6">
+                <h3 class="text-lg font-bold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
+                    <i class="fas fa-lock text-amber-500"></i>
+                    <span>Update Password</span>
                 </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Leave blank to keep current password</p>
+                <p class="text-sm text-amber-500 mb-4">Leave blank to keep your current password</p>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Current Password</label>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Current Password</label>
                         <input type="password" name="current_password"
-                               class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                               class="input-warm w-full"
+                               placeholder="Enter current password">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">New Password</label>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">New Password</label>
                         <input type="password" name="password"
-                               class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                               class="input-warm w-full"
+                               placeholder="Create new password">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Confirm New Password</label>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Confirm New Password</label>
                         <input type="password" name="password_confirmation"
-                               class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                               class="input-warm w-full"
+                               placeholder="Confirm new password">
                     </div>
                 </div>
             </div>
 
             <div class="flex justify-end">
-                <button type="submit" class="btn-primary px-6 py-3 rounded-xl text-white font-semibold flex items-center gap-2">
+                <button type="submit" class="btn-soft inline-flex items-center gap-2">
                     <i class="fas fa-save"></i>
-                    <span>Update Profile</span>
+                    <span>Save Changes</span>
                 </button>
             </div>
         </form>
     </div>
 
     <!-- Stats Card -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden animate-fade-in-up" style="animation-delay: 0.2s">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 class="font-bold text-gray-900 dark:text-white">Account Statistics</h3>
+    <div class="card-warm overflow-hidden animate-gentle" style="animation-delay: 0.2s">
+        <div class="px-6 py-4 border-b border-amber-100 dark:border-gray-700">
+            <h3 class="font-bold text-amber-800 dark:text-amber-200">Your Journey 📊</h3>
         </div>
-        <div class="p-6 grid grid-cols-2 gap-4">
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Member Since</p>
-                <p class="font-semibold text-gray-900 dark:text-white">{{ $user->created_at->format('M d, Y') }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Email Status</p>
-                <p class="font-semibold">
-                    @if($user->hasVerifiedEmail())
-                        <span class="text-green-600 dark:text-green-400"><i class="fas fa-check-circle"></i> Verified</span>
-                    @else
-                        <span class="text-yellow-600 dark:text-yellow-400"><i class="fas fa-exclamation-circle"></i> Not Verified</span>
-                    @endif
-                </p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Total Bots</p>
-                <p class="font-semibold text-gray-900 dark:text-white">{{ $user->bots()->count() }}</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Bot Limit</p>
-                <p class="font-semibold text-gray-900 dark:text-white">{{ $user->bot_limit }}</p>
+        <div class="p-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="text-center p-3 bg-amber-50 dark:bg-gray-800 rounded-xl">
+                    <p class="text-2xl font-bold text-amber-800 dark:text-amber-200">{{ $user->bots()->count() }}</p>
+                    <p class="text-xs text-amber-500">Bot Family</p>
+                </div>
+                <div class="text-center p-3 bg-amber-50 dark:bg-gray-800 rounded-xl">
+                    <p class="text-2xl font-bold text-amber-800 dark:text-amber-200">{{ $user->bot_limit }}</p>
+                    <p class="text-xs text-amber-500">Bot Limit</p>
+                </div>
+                <div class="text-center p-3 bg-amber-50 dark:bg-gray-800 rounded-xl">
+                    <p class="text-2xl font-bold text-amber-800 dark:text-amber-200">{{ $user->created_at->format('M d, Y') }}</p>
+                    <p class="text-xs text-amber-500">Joined</p>
+                </div>
+                <div class="text-center p-3 bg-amber-50 dark:bg-gray-800 rounded-xl">
+                    <p class="text-2xl font-bold text-amber-800 dark:text-amber-200">
+                        ${{ max(0, $user->bot_limit - 1) * 2 }}
+                    </p>
+                    <p class="text-xs text-amber-500">Monthly Love</p>
+                </div>
             </div>
         </div>
     </div>

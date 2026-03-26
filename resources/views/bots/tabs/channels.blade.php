@@ -1,29 +1,29 @@
 <div x-data="channelsManager()" class="space-y-6">
-    <!-- Tip Card -->
-    <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-5 border border-blue-200 dark:border-blue-800 animate-fade-in-up">
+    <!-- Warm Tip Card -->
+    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-5 border-l-4 border-amber-400 animate-gentle">
         <div class="flex items-start gap-3">
-            <i class="fas fa-lightbulb text-blue-500 text-xl"></i>
+            <i class="fas fa-lightbulb text-amber-500 text-xl"></i>
             <div>
-                <p class="text-blue-800 dark:text-blue-300 font-medium">Quick Tip</p>
-                <p class="text-sm text-blue-700 dark:text-blue-400 mt-1">
-                    Copy the Webhook URL provided in each channel card and paste it into the respective platform's developer console.
-                    You can create multiple channels of the same type.
+                <p class="text-amber-800 dark:text-amber-300 font-medium">💝 Friendly Tip</p>
+                <p class="text-sm text-amber-600 dark:text-amber-400 mt-1">
+                    Copy the Webhook URL from each channel and paste it into the platform's developer console.
+                    You can create multiple channels to connect with your customers everywhere!
                 </p>
             </div>
         </div>
     </div>
 
     <!-- Add Channel Form -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 animate-fade-in-up" style="animation-delay: 0.1s">
-        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <i class="fas fa-plus-circle text-green-500"></i>
-            <span>Add New Channel</span>
+    <div class="card-warm p-6 animate-gentle" style="animation-delay: 0.1s">
+        <h3 class="text-lg font-bold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
+            <i class="fas fa-plus-circle text-amber-500"></i>
+            <span>Connect a New Channel 🌐</span>
         </h3>
         <form action="{{ route('bots.channels.store', $bot) }}" method="POST" class="flex flex-col sm:flex-row gap-4">
             @csrf
             <div class="flex-1">
-                <select name="channel_type" required class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500">
-                    <option value="">-- Select Channel --</option>
+                <select name="channel_type" required class="input-warm w-full">
+                    <option value="">✨ Choose a platform</option>
                     <option value="fb">📘 Facebook Messenger</option>
                     <option value="zalo">🔵 Zalo Official Account</option>
                     <option value="zlpn">👤 Zalo Personal</option>
@@ -33,13 +33,12 @@
                 </select>
             </div>
             <div class="flex-1">
-                <input type="text" name="channel_name" placeholder="e.g., Main Fanpage, Support Channel"
-                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                       required>
+                <input type="text" name="channel_name" placeholder="Give it a cozy name (e.g., Main Fanpage)"
+                       class="input-warm w-full">
             </div>
             <div>
-                <button type="submit" class="btn-primary px-6 py-3 rounded-xl text-white font-semibold flex items-center gap-2">
-                    <i class="fas fa-plus"></i>
+                <button type="submit" class="btn-soft px-6 py-3 rounded-xl text-amber-900 font-semibold flex items-center gap-2">
+                    <i class="fas fa-heart"></i>
                     <span>Add Channel</span>
                 </button>
             </div>
@@ -49,14 +48,15 @@
     <!-- Channels List -->
     <div class="space-y-4">
         @forelse($bot->channels as $channel)
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden animate-fade-in-up" x-data="{ showConfig: false }">
+        <div class="card-warm overflow-hidden animate-gentle" x-data="{ showConfig: false }" style="animation-delay: {{ 0.2 + $loop->index * 0.05 }}s">
             <form action="{{ route('bots.channels.update', [$bot, $channel]) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="channel_type" value="{{ $channel->channel_type }}">
 
-                <div class="px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-800/50 border-b border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
+                <!-- Channel Header -->
+                <div class="px-6 py-4 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-gray-800 dark:to-gray-700 border-b border-amber-200 dark:border-gray-600 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 cursor-pointer" @click="showConfig = !showConfig">
                         <div class="text-3xl">
                             @switch($channel->channel_type)
                                 @case('fb') 📘 @break
@@ -69,37 +69,48 @@
                             @endswitch
                         </div>
                         <div>
-                            <h4 class="font-bold text-gray-900 dark:text-white">{{ $channel->channel_name }}</h4>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">ID: {{ $channel->id }} • {{ ucfirst($channel->channel_type) }}</p>
+                            <h4 class="font-bold text-amber-800 dark:text-amber-200">{{ $channel->channel_name }}</h4>
+                            <p class="text-xs text-amber-500 dark:text-amber-400">ID: {{ $channel->id }} • {{ ucfirst($channel->channel_type) }}</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-4">
                         <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" name="is_active" value="1" {{ $channel->is_active ? 'checked' : '' }} class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Active</span>
+                            <input type="checkbox" name="is_active" value="1" {{ $channel->is_active ? 'checked' : '' }}
+                                   class="w-4 h-4 text-amber-500 rounded focus:ring-amber-500">
+                            <span class="text-sm text-amber-600 dark:text-amber-400">
+                                <i class="fas {{ $channel->is_active ? 'fa-heart text-red-500' : 'fa-heart-broken' }}"></i>
+                                {{ $channel->is_active ? 'Active' : 'Inactive' }}
+                            </span>
                         </label>
-                        <button type="submit" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Save</button>
-                        <button type="button" @click="showConfig = !showConfig" class="text-gray-500 hover:text-gray-700">
+                        <button type="submit" class="text-amber-600 hover:text-amber-700 text-sm font-medium">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button type="button" @click="showConfig = !showConfig" class="text-amber-500 hover:text-amber-600">
                             <i class="fas" :class="showConfig ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                         </button>
                     </div>
                 </div>
 
-                <div x-show="showConfig" x-collapse class="p-6 border-t border-gray-200 dark:border-gray-700 space-y-4">
+                <!-- Channel Configuration (Collapsible) -->
+                <div x-show="showConfig" x-collapse class="p-6 border-t border-amber-100 dark:border-gray-700 space-y-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Channel Name</label>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-tag mr-2 text-amber-500"></i>Channel Name
+                        </label>
                         <input type="text" name="channel_name" value="{{ $channel->channel_name }}"
-                               class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                               class="input-warm w-full max-w-md">
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Webhook URL</label>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-link mr-2 text-amber-500"></i>Webhook URL
+                        </label>
                         <div class="flex gap-2">
                             <input type="text" id="webhook-{{ $channel->id }}" readonly
                                    value="{{ $channel->getWebhookUrl() }}"
-                                   class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg font-mono text-sm">
+                                   class="flex-1 px-4 py-2 bg-amber-50 dark:bg-gray-700 border border-amber-200 dark:border-gray-600 rounded-xl font-mono text-sm text-amber-700 dark:text-amber-300">
                             <button type="button" onclick="copyWebhook('webhook-{{ $channel->id }}', this)"
-                                    class="px-4 py-2 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition">
+                                    class="px-4 py-2 bg-amber-100 dark:bg-gray-600 rounded-xl hover:bg-amber-200 dark:hover:bg-gray-500 transition text-amber-600">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
@@ -108,96 +119,120 @@
                     @switch($channel->channel_type)
                         @case('fb')
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Verify Token</label>
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                    <i class="fas fa-shield-alt mr-2 text-amber-500"></i>Verify Token
+                                </label>
                                 <input type="text" name="fb_verify_token" value="{{ $channel->config['fb_verify_token'] ?? '' }}"
-                                       class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                       class="input-warm w-full max-w-md">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Page Access Token</label>
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                    <i class="fas fa-key mr-2 text-amber-500"></i>Page Access Token
+                                </label>
                                 <textarea name="fb_page_token" rows="3"
-                                          class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">{{ $channel->config['fb_page_token'] ?? '' }}</textarea>
+                                          class="input-warm w-full max-w-md font-mono text-sm">{{ $channel->config['fb_page_token'] ?? '' }}</textarea>
+                                <p class="text-xs text-amber-500 mt-1">Find this in your Facebook Developer Dashboard</p>
                             </div>
                             @break
 
                         @case('zalo')
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">OA Access Token</label>
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                    <i class="fas fa-key mr-2 text-amber-500"></i>OA Access Token
+                                </label>
                                 <textarea name="zalo_access_token" rows="3"
-                                          class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">{{ $channel->config['zalo_access_token'] ?? '' }}</textarea>
+                                          class="input-warm w-full max-w-md font-mono text-sm">{{ $channel->config['zalo_access_token'] ?? '' }}</textarea>
+                                <p class="text-xs text-amber-500 mt-1">Get from Zalo Developer Console</p>
                             </div>
                             @break
 
                         @case('wa')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Verify Token</label>
+                                    <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                        <i class="fas fa-shield-alt mr-2 text-amber-500"></i>Verify Token
+                                    </label>
                                     <input type="text" name="whatsapp_verify_token" value="{{ $channel->config['whatsapp_verify_token'] ?? '' }}"
-                                           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                           class="input-warm w-full">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Phone Number ID</label>
+                                    <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                        <i class="fas fa-phone mr-2 text-amber-500"></i>Phone Number ID
+                                    </label>
                                     <input type="text" name="whatsapp_phone_number_id" value="{{ $channel->config['whatsapp_phone_number_id'] ?? '' }}"
-                                           class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                           class="input-warm w-full">
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">System User Token</label>
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                    <i class="fas fa-key mr-2 text-amber-500"></i>System User Token
+                                </label>
                                 <textarea name="whatsapp_token" rows="2"
-                                          class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">{{ $channel->config['whatsapp_token'] ?? '' }}</textarea>
+                                          class="input-warm w-full max-w-md font-mono text-sm">{{ $channel->config['whatsapp_token'] ?? '' }}</textarea>
+                                <p class="text-xs text-amber-500 mt-1">From Meta Business Suite</p>
                             </div>
                             @break
 
                         @case('sp')
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Shop ID</label>
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                    <i class="fas fa-store mr-2 text-amber-500"></i>Shop ID
+                                </label>
                                 <input type="text" name="shopee_shop_id" value="{{ $channel->config['shopee_shop_id'] ?? '' }}"
-                                       class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">
+                                       class="input-warm w-full max-w-md">
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Access Token</label>
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                    <i class="fas fa-key mr-2 text-amber-500"></i>Access Token
+                                </label>
                                 <textarea name="shopee_access_token" rows="2"
-                                          class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">{{ $channel->config['shopee_access_token'] ?? '' }}</textarea>
+                                          class="input-warm w-full max-w-md font-mono text-sm">{{ $channel->config['shopee_access_token'] ?? '' }}</textarea>
                             </div>
                             @break
 
                         @case('tt')
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Access Token</label>
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                    <i class="fas fa-key mr-2 text-amber-500"></i>Access Token
+                                </label>
                                 <textarea name="tiktok_access_token" rows="3"
-                                          class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">{{ $channel->config['tiktok_access_token'] ?? '' }}</textarea>
+                                          class="input-warm w-full max-w-md font-mono text-sm">{{ $channel->config['tiktok_access_token'] ?? '' }}</textarea>
                             </div>
                             @break
 
                         @case('zlpn')
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">API Key / Token</label>
+                                <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                                    <i class="fas fa-key mr-2 text-amber-500"></i>API Key / Token
+                                </label>
                                 <textarea name="zalo_personal_token" rows="3"
-                                          class="w-full max-w-md px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg">{{ $channel->config['zalo_personal_token'] ?? '' }}</textarea>
-                                <p class="text-xs text-gray-500 mt-1">Format: API_URL|TOKEN or just TOKEN</p>
+                                          class="input-warm w-full max-w-md font-mono text-sm">{{ $channel->config['zalo_personal_token'] ?? '' }}</textarea>
+                                <p class="text-xs text-amber-500 mt-1">Format: API_URL|TOKEN or just TOKEN</p>
                             </div>
                             @break
                     @endswitch
                 </div>
             </form>
 
-            <div class="px-6 py-3 bg-gray-50 dark:bg-gray-700/30 border-t border-gray-200 dark:border-gray-700 flex justify-end">
+            <!-- Delete Button -->
+            <div class="px-6 py-3 bg-amber-50/50 dark:bg-gray-800/50 border-t border-amber-100 dark:border-gray-700 flex justify-end">
                 <form action="{{ route('bots.channels.destroy', [$bot, $channel]) }}" method="POST" onsubmit="return confirmDeleteChannel(this)">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="text-red-600 hover:text-red-800 text-sm font-medium flex items-center gap-1">
+                    <button type="submit" class="text-red-500 hover:text-red-600 text-sm font-medium flex items-center gap-1 transition">
                         <i class="fas fa-trash-alt"></i>
-                        <span>Delete Channel</span>
+                        <span>Remove Channel</span>
                     </button>
                 </form>
             </div>
         </div>
         @empty
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center shadow-lg">
-            <div class="text-6xl mb-4 opacity-50">📱</div>
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">No Channels Connected</h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-6">Connect your bot to social platforms to reach more customers</p>
+        <div class="card-warm p-12 text-center animate-gentle">
+            <div class="text-6xl mb-4">📱</div>
+            <h3 class="text-xl font-bold text-amber-800 dark:text-amber-200 mb-2">No Channels Connected Yet</h3>
+            <p class="text-amber-600 dark:text-amber-400 mb-6">Connect your bot to social platforms to reach more customers and spread kindness! 💝</p>
             <button onclick="document.querySelector('select[name=\"channel_type\"]').focus()"
-                    class="btn-primary px-6 py-3 rounded-xl text-white font-semibold inline-flex items-center gap-2">
+                    class="btn-soft inline-flex items-center gap-2">
                 <i class="fas fa-plus"></i>
                 <span>Add Your First Channel</span>
             </button>
@@ -224,18 +259,28 @@ function copyWebhook(elementId, button) {
     setTimeout(() => {
         button.innerHTML = originalHtml;
     }, 2000);
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Copied! 📋',
+        text: 'Webhook URL copied to clipboard',
+        toast: true,
+        timer: 2000,
+        showConfirmButton: false,
+        position: 'top-end'
+    });
 }
 
 function confirmDeleteChannel(form) {
     Swal.fire({
-        title: 'Delete Channel?',
-        text: 'This channel configuration will be permanently removed.',
-        icon: 'warning',
+        title: 'Remove Channel? 💔',
+        text: 'This channel will be disconnected. You can always add it back later.',
+        icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#ef4444',
+        confirmButtonColor: '#f59e0b',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel'
+        confirmButtonText: 'Yes, remove it',
+        cancelButtonText: 'Keep it'
     }).then((result) => {
         if (result.isConfirmed) {
             form.submit();

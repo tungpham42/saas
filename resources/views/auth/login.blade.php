@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="themeManager()" x-init="initTheme()">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Sign In - SaaS AI Chatbot</title>
+    <title>Welcome Back - SaaS AI Chatbot</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,110 +22,158 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #fef9e7 0%, #fff5e6 100%);
         }
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .dark body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
         }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
+        .gradient-warm {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
         }
-        .float-animation {
-            animation: float 6s ease-in-out infinite;
+        @keyframes gentleFade {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .animate-gentle {
+            animation: gentleFade 0.6s ease-out;
         }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.6s ease-out;
+        .input-warm {
+            background-color: #fffbeb;
+            border: 2px solid #fde68a;
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .input-warm:focus {
+            border-color: #f59e0b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        }
+        .dark .input-warm {
+            background-color: #374151;
+            border-color: #d97706;
+            color: #fef3c7;
+        }
+        .btn-warm {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #2c2418;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+        }
+        .btn-warm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+        }
+        .dark .btn-warm {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            color: #fef3c7;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full animate-fade-in-up">
+<body :class="{ 'dark': isDarkMode }" class="min-h-screen flex items-center justify-center py-12 px-4 transition-colors duration-300">
+    <div class="max-w-md w-full animate-gentle">
         <!-- Logo -->
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-2xl shadow-xl mb-4">
-                <i class="fas fa-robot text-4xl gradient-text"></i>
+            <div class="inline-flex items-center justify-center w-20 h-20 gradient-warm rounded-2xl shadow-xl mb-4">
+                <i class="fas fa-robot text-amber-900 text-4xl"></i>
             </div>
-            <h1 class="text-3xl font-bold text-white">Welcome Back</h1>
-            <p class="text-white/80 mt-2">Sign in to your account</p>
+            <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">Welcome Back</h1>
+            <p class="text-amber-600 dark:text-amber-400 mt-2">We missed you! ✨</p>
         </div>
 
         <!-- Login Card -->
-        <div class="bg-white rounded-2xl shadow-2xl p-8">
+        <div class="card-warm p-8">
             <form method="POST" action="{{ route('login') }}" class="space-y-6">
                 @csrf
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        <i class="fas fa-envelope mr-2 text-blue-500"></i>Email Address
+                    <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                        <i class="fas fa-envelope mr-2 text-amber-500"></i>Email
                     </label>
                     <input type="email" name="email" value="{{ old('email') }}" required
-                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                           placeholder="admin@example.com">
+                           class="input-warm w-full"
+                           placeholder="hello@example.com">
                     @error('email')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        <i class="fas fa-lock mr-2 text-blue-500"></i>Password
+                    <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                        <i class="fas fa-lock mr-2 text-amber-500"></i>Password
                     </label>
                     <input type="password" name="password" required
-                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                           class="input-warm w-full"
                            placeholder="••••••••">
                     @error('password')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <div class="flex items-center justify-between">
-                    <label class="flex items-center">
-                        <input type="checkbox" name="remember" class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
-                        <span class="ml-2 text-sm text-gray-600">Remember me</span>
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" name="remember" class="w-4 h-4 text-amber-500 rounded focus:ring-amber-500">
+                        <span class="ml-2 text-sm text-amber-600 dark:text-amber-400">Remember me</span>
                     </label>
                 </div>
 
-                <button type="submit"
-                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition transform hover:scale-105 duration-200">
+                <button type="submit" class="btn-warm w-full">
                     Sign In
                 </button>
             </form>
 
             <div class="mt-6 text-center">
-                <p class="text-sm text-gray-600">
-                    Don't have an account?
-                    <a href="{{ route('register') }}" class="text-blue-600 hover:text-blue-700 font-semibold">Sign up</a>
+                <p class="text-sm text-amber-600 dark:text-amber-400">
+                    New here?
+                    <a href="{{ route('register') }}" class="text-amber-600 hover:text-amber-700 font-semibold">Join our family</a>
                 </p>
             </div>
 
-            <div class="mt-6 pt-6 border-t border-gray-200">
-                <div class="bg-blue-50 rounded-xl p-4">
-                    <p class="text-xs text-blue-800 text-center">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Demo: admin@example.com / password
-                    </p>
-                </div>
+            <!-- Theme Toggle -->
+            <div class="mt-6 pt-6 border-t border-amber-100 dark:border-gray-700 text-center">
+                <button @click="toggleTheme()" class="inline-flex items-center gap-2 text-amber-500 hover:text-amber-600">
+                    <i x-show="!isDarkMode" class="fas fa-moon"></i>
+                    <i x-show="isDarkMode" class="fas fa-sun"></i>
+                    <span x-show="!isDarkMode">Switch to Dark Mode</span>
+                    <span x-show="isDarkMode">Switch to Light Mode</span>
+                </button>
             </div>
         </div>
 
         <!-- Footer -->
-        <p class="text-center text-white/60 text-sm mt-8">
-            &copy; {{ date('Y') }} SaaS AI Chatbot. All rights reserved.
+        <p class="text-center text-amber-400 text-sm mt-8">
+            &copy; {{ date('Y') }} SaaS AI Chatbot. Spread kindness. 💝
         </p>
     </div>
+
+    <script>
+        function themeManager() {
+            return {
+                isDarkMode: false,
+                initTheme() {
+                    const savedTheme = localStorage.getItem('theme');
+                    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        this.isDarkMode = true;
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        this.isDarkMode = false;
+                        document.documentElement.classList.remove('dark');
+                    }
+                },
+                toggleTheme() {
+                    this.isDarkMode = !this.isDarkMode;
+                    if (this.isDarkMode) {
+                        document.documentElement.classList.add('dark');
+                        localStorage.setItem('theme', 'dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        localStorage.setItem('theme', 'light');
+                    }
+                }
+            }
+        }
+    </script>
 </body>
 </html>

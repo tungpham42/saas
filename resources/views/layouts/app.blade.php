@@ -31,229 +31,133 @@
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
-        /* ========== LIGHT MODE (DEFAULT) ========== */
+        /* Warm Light Mode */
         body {
-            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
-            color: #1e293b;
+            background: linear-gradient(135deg, #fef9e7 0%, #fff5e6 100%);
+            color: #2c2418;
         }
 
-        /* Card backgrounds */
-        .bg-white {
-            background-color: #ffffff !important;
-        }
-
-        .bg-gray-50 {
-            background-color: #f9fafb !important;
-        }
-
-        .bg-gray-100 {
-            background-color: #f3f4f6 !important;
-        }
-
-        /* Text colors - HIGH CONTRAST for light mode */
-        .text-gray-900 { color: #0f172a !important; font-weight: 500; }
-        .text-gray-800 { color: #1e293b !important; font-weight: 500; }
-        .text-gray-700 { color: #334155 !important; }
-        .text-gray-600 { color: #475569 !important; }
-        .text-gray-500 { color: #64748b !important; }
-        .text-gray-400 { color: #94a3b8 !important; }
-
-        /* Heading colors - ensure visibility */
-        h1, h2, h3, h4, h5, h6 {
-            color: #0f172a !important;
-        }
-
-        .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
-            color: #f1f5f9 !important;
-        }
-
-        /* Link colors */
-        a:not(.btn-primary):not(.btn-secondary) {
-            color: #4f46e5;
-        }
-
-        a:not(.btn-primary):not(.btn-secondary):hover {
-            color: #6366f1;
-        }
-
-        /* Border colors */
-        .border-gray-200 { border-color: #e2e8f0 !important; }
-        .border-gray-300 { border-color: #cbd5e1 !important; }
-
-        /* Icons - inherit color from parent */
-        i, .fas, .far, .fab, .fa, svg {
-            color: inherit;
-        }
-
-        /* Table styles */
-        table {
-            background-color: #ffffff;
-        }
-
-        th {
-            background-color: #f8fafc;
-            color: #1e293b;
-            font-weight: 600;
-        }
-
-        td {
-            color: #334155;
-        }
-
-        /* Form inputs */
-        input, select, textarea {
-            background-color: #ffffff !important;
-            color: #1e293b !important;
-            border: 1px solid #cbd5e1 !important;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: #6366f1 !important;
-            outline: none !important;
-            ring: 2px solid #6366f1 !important;
-        }
-
-        input::placeholder, textarea::placeholder {
-            color: #94a3b8 !important;
-        }
-
-        /* Code blocks */
-        code {
-            background-color: #f1f5f9;
-            color: #dc2626;
-            padding: 0.125rem 0.375rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-        }
-
-        /* Alert messages */
-        .alert-success {
-            background-color: #f0fdf4;
-            border-left: 4px solid #22c55e;
-            color: #166534;
-        }
-
-        .alert-error {
-            background-color: #fef2f2;
-            border-left: 4px solid #ef4444;
-            color: #991b1b;
-        }
-
-        /* ========== DARK MODE OVERRIDES ========== */
         .dark body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            color: #e2e8f0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e6e3;
         }
 
-        .dark .bg-white {
-            background-color: #1e293b !important;
+        /* Glassmorphism Card Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 1.5rem;
         }
 
-        .dark .bg-gray-50,
-        .dark .bg-gray-100 {
-            background-color: #0f172a !important;
+        .dark .glass-card {
+            background: rgba(30, 30, 46, 0.9);
+            border: 1px solid rgba(245, 158, 11, 0.2);
         }
 
-        .dark .text-gray-900,
-        .dark .text-gray-800,
-        .dark .text-gray-700 {
-            color: #f1f5f9 !important;
-        }
-
-        .dark .text-gray-600 {
-            color: #cbd5e1 !important;
-        }
-
-        .dark .text-gray-500 {
-            color: #94a3b8 !important;
-        }
-
-        .dark .text-gray-400 {
-            color: #64748b !important;
-        }
-
-        .dark .border-gray-200,
-        .dark .border-gray-300 {
-            border-color: #334155 !important;
-        }
-
-        .dark th {
-            background-color: #0f172a;
-            color: #e2e8f0;
-        }
-
-        .dark td {
-            color: #cbd5e1;
-        }
-
-        .dark input, .dark select, .dark textarea {
-            background-color: #334155 !important;
-            color: #f1f5f9 !important;
-            border-color: #475569 !important;
-        }
-
-        .dark input::placeholder, .dark textarea::placeholder {
-            color: #94a3b8 !important;
-        }
-
-        .dark code {
-            background-color: #1e293b;
-            color: #f87171;
-        }
-
-        /* Gradient Text - works in both modes */
-        .gradient-text {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .dark .gradient-text {
-            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        /* Buttons */
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            color: white !important;
+        /* Warm Card Background */
+        .card-warm {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
             transition: all 0.3s ease;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        .dark .card-warm {
+            background: #1f2937;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
         }
 
-        .btn-secondary {
-            background: linear-gradient(135deg, #ec489a 0%, #f97316 100%);
-            color: white !important;
-            transition: all 0.3s ease;
-        }
-
-        .btn-secondary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(236, 72, 153, 0.3);
-        }
-
-        /* Card hover */
-        .card-hover {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .card-hover:hover {
+        .card-warm:hover {
             transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Warm Gradient */
+        .gradient-warm {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        }
+
+        .gradient-warm-dark {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+
+        /* Soft Buttons */
+        .btn-soft {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #2c2418;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-soft:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.3);
+        }
+
+        .dark .btn-soft {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            color: #fef3c7;
+        }
+
+        .btn-outline-soft {
+            border: 2px solid #fbbf24;
+            color: #f59e0b;
+            background: transparent;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-soft:hover {
+            background: rgba(251, 191, 36, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .dark .btn-outline-soft {
+            border-color: #d97706;
+            color: #fbbf24;
+        }
+
+        /* Text Colors - Warm Tones */
+        .text-warm {
+            color: #78350f;
+        }
+
+        .dark .text-warm {
+            color: #fde68a;
+        }
+
+        /* Input Fields */
+        .input-warm {
+            background-color: #fffbeb;
+            border: 2px solid #fde68a;
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-warm:focus {
+            border-color: #f59e0b;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+        }
+
+        .dark .input-warm {
+            background-color: #374151;
+            border-color: #d97706;
+            color: #fef3c7;
         }
 
         /* Animations */
-        @keyframes fadeInUp {
+        @keyframes gentleFade {
             from {
                 opacity: 0;
-                transform: translateY(20px);
+                transform: translateY(15px);
             }
             to {
                 opacity: 1;
@@ -261,71 +165,100 @@
             }
         }
 
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out;
+        @keyframes softPulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
         }
 
-        /* Scrollbar */
+        .animate-gentle {
+            animation: gentleFade 0.5s ease-out;
+        }
+
+        .animate-pulse-soft {
+            animation: softPulse 2s ease-in-out infinite;
+        }
+
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #e2e8f0;
+            background: #fef3c7;
             border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
             border-radius: 10px;
         }
 
         .dark ::-webkit-scrollbar-track {
-            background: #1e293b;
+            background: #1f2937;
         }
 
-        /* Pagination */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 0.25rem;
-        }
-
-        .pagination .page-link {
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            color: #334155;
-            background: white;
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s;
-        }
-
-        .dark .pagination .page-link {
-            background: #1e293b;
-            color: #94a3b8;
-            border-color: #334155;
-        }
-
-        .pagination .active .page-link {
-            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-            color: white !important;
-            border-color: transparent;
-        }
-
-        /* Badge/Tag styles */
-        .badge {
-            background-color: #f1f5f9;
-            color: #334155;
+        /* Status Indicators */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             padding: 0.25rem 0.75rem;
             border-radius: 9999px;
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 600;
         }
 
-        .dark .badge {
-            background-color: #334155;
-            color: #e2e8f0;
+        .status-active {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .dark .status-active {
+            background: #451a03;
+            color: #fde68a;
+        }
+
+        /* Table Styles */
+        .table-warm {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-warm th {
+            background: #fef3c7;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #78350f;
+        }
+
+        .dark .table-warm th {
+            background: #2d2d44;
+            color: #fde68a;
+        }
+
+        .table-warm td {
+            padding: 1rem;
+            border-bottom: 1px solid #fef3c7;
+            color: #5b3b1c;
+        }
+
+        .dark .table-warm td {
+            border-bottom-color: #374151;
+            color: #e8e6e3;
+        }
+
+        .table-warm tr:hover td {
+            background: #fffbeb;
+        }
+
+        .dark .table-warm tr:hover td {
+            background: #2d2d44;
         }
     </style>
 
@@ -333,59 +266,59 @@
 </head>
 <body x-data="{ sidebarOpen: false, userMenuOpen: false }"
       :class="{ 'dark': isDarkMode }"
-      class="antialiased transition-colors duration-300">
+      class="antialiased transition-all duration-300">
 
     <div class="min-h-screen">
-        <!-- Navigation -->
-        <nav class="bg-white dark:bg-gray-900 shadow-lg sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700">
-            <div class="px-4 sm:px-6 lg:px-8">
+        <!-- Navigation - Warm & Cozy -->
+        <nav class="fixed w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md shadow-sm z-50 transition-all duration-300 border-b border-amber-100 dark:border-amber-900/30">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center">
-                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
+                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 rounded-xl text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
 
-                        <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 ml-2 lg:ml-0">
-                            <div class="gradient-bg rounded-xl p-2 shadow-lg">
-                                <i class="fas fa-robot text-white text-xl"></i>
+                        <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 ml-2 lg:ml-0 group">
+                            <div class="gradient-warm rounded-xl p-2 shadow-lg group-hover:scale-105 transition-transform">
+                                <i class="fas fa-robot text-amber-900 dark:text-amber-100 text-xl"></i>
                             </div>
-                            <span class="text-xl font-bold gradient-text hidden sm:inline-block">SaaS AI Chatbot</span>
+                            <span class="text-xl font-bold bg-gradient-to-r from-amber-600 to-orange-500 bg-clip-text text-transparent">SaaS AI Chatbot</span>
                         </a>
                     </div>
 
-                    <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-3">
                         <!-- Theme Switcher -->
                         <button @click="toggleTheme()"
-                                class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+                                class="p-2 rounded-xl bg-amber-50 dark:bg-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
                             <i x-show="!isDarkMode" class="fas fa-moon text-lg"></i>
                             <i x-show="isDarkMode" class="fas fa-sun text-lg"></i>
                         </button>
 
                         <!-- Notifications -->
-                        <button class="relative p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+                        <button class="relative p-2 rounded-xl bg-amber-50 dark:bg-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
                             <i class="fas fa-bell text-lg"></i>
-                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse-soft"></span>
                         </button>
 
                         <!-- User Menu -->
                         <div class="relative">
                             <button @click="userMenuOpen = !userMenuOpen"
-                                    class="flex items-center space-x-3 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
-                                <div class="gradient-primary rounded-full w-8 h-8 flex items-center justify-center">
-                                    <span class="text-white text-sm font-semibold">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
+                                    class="flex items-center space-x-3 p-2 rounded-xl bg-amber-50 dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
+                                <div class="gradient-warm rounded-full w-8 h-8 flex items-center justify-center">
+                                    <span class="text-amber-900 dark:text-amber-100 text-sm font-semibold">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                                 </div>
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200 hidden sm:inline">{{ auth()->user()->name }}</span>
-                                <i class="fas fa-chevron-down text-xs text-gray-500 dark:text-gray-400"></i>
+                                <span class="text-sm font-medium text-amber-800 dark:text-amber-200 hidden sm:inline">{{ auth()->user()->name }}</span>
+                                <i class="fas fa-chevron-down text-xs text-amber-500"></i>
                             </button>
 
                             <div x-show="userMenuOpen" @click.away="userMenuOpen = false"
-                                 class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg py-2 z-50 border border-gray-200 dark:border-gray-700 animate-slide-in">
-                                <a href="{{ route('profile') }}" class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    <i class="fas fa-user-circle w-5 mr-3"></i> Profile
+                                 class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-2xl shadow-lg py-2 z-50 border border-amber-100 dark:border-gray-700 animate-gentle">
+                                <a href="{{ route('profile') }}" class="flex items-center px-4 py-2 text-sm text-amber-800 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-gray-700">
+                                    <i class="fas fa-user-circle w-5 mr-3 text-amber-500"></i> Profile
                                 </a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    <button type="submit" class="flex items-center w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-amber-50 dark:hover:bg-gray-700">
                                         <i class="fas fa-sign-out-alt w-5 mr-3"></i> Sign out
                                     </button>
                                 </form>
@@ -397,29 +330,29 @@
         </nav>
 
         <!-- Sidebar (Mobile) -->
-        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"></div>
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm z-40 lg:hidden"></div>
 
-        <div class="flex">
-            <!-- Sidebar -->
+        <div class="flex pt-16">
+            <!-- Sidebar - Warm & Cozy -->
             <aside x-show="sidebarOpen"
                    @click.away="sidebarOpen = false"
-                   class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-900 shadow-2xl z-40 transform transition-transform duration-300 lg:relative lg:translate-x-0"
+                   class="fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-900 shadow-xl z-40 transform transition-transform duration-300 lg:relative lg:translate-x-0 border-r border-amber-100 dark:border-gray-800"
                    :class="{ '-translate-x-full': !sidebarOpen, 'translate-x-0': sidebarOpen }">
                 <div class="p-6">
                     <nav class="space-y-2">
                         <a href="{{ route('dashboard') }}"
-                           class="flex items-center space-x-3 px-4 py-3 rounded-xl {{ request()->routeIs('dashboard') ? 'gradient-primary text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }} transition-all">
+                           class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all {{ request()->routeIs('dashboard') ? 'gradient-warm text-amber-900 dark:text-amber-100 shadow-md' : 'text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-gray-800' }}">
                             <i class="fas fa-chart-line w-5"></i>
                             <span>Dashboard</span>
                         </a>
                         <a href="{{ route('bots.index') }}"
-                           class="flex items-center space-x-3 px-4 py-3 rounded-xl {{ request()->routeIs('bots.*') ? 'gradient-primary text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }} transition-all">
+                           class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all {{ request()->routeIs('bots.*') ? 'gradient-warm text-amber-900 dark:text-amber-100 shadow-md' : 'text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-gray-800' }}">
                             <i class="fas fa-robot w-5"></i>
                             <span>My Bots</span>
                         </a>
                         @if(auth()->user()->isAdmin())
                         <a href="{{ route('users.index') }}"
-                           class="flex items-center space-x-3 px-4 py-3 rounded-xl {{ request()->routeIs('users.*') ? 'gradient-primary text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800' }} transition-all">
+                           class="flex items-center space-x-3 px-4 py-3 rounded-xl transition-all {{ request()->routeIs('users.*') ? 'gradient-warm text-amber-900 dark:text-amber-100 shadow-md' : 'text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-gray-800' }}">
                             <i class="fas fa-users w-5"></i>
                             <span>Users</span>
                         </a>
@@ -432,16 +365,16 @@
             <main class="flex-1 p-4 sm:p-6 lg:p-8">
                 <div class="max-w-7xl mx-auto">
                     @if(session('success'))
-                        <div class="mb-6 bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-4 rounded-r-xl animate-fade-in-up">
+                        <div class="mb-6 bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-r-2xl animate-gentle">
                             <div class="flex items-center">
-                                <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
-                                <p class="text-green-700 dark:text-green-400">{{ session('success') }}</p>
+                                <i class="fas fa-check-circle text-amber-500 text-xl mr-3"></i>
+                                <p class="text-amber-700 dark:text-amber-400">{{ session('success') }}</p>
                             </div>
                         </div>
                     @endif
 
                     @if(session('error'))
-                        <div class="mb-6 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-xl animate-fade-in-up">
+                        <div class="mb-6 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-2xl animate-gentle">
                             <div class="flex items-center">
                                 <i class="fas fa-exclamation-circle text-red-500 text-xl mr-3"></i>
                                 <p class="text-red-700 dark:text-red-400">{{ session('error') }}</p>
@@ -450,12 +383,10 @@
                     @endif
 
                     @if(auth()->user() && !auth()->user()->hasVerifiedEmail())
-                        <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-4 rounded-r-xl animate-fade-in-up">
-                            <div class="flex items-center justify-between flex-wrap gap-4">
-                                <div class="flex items-center">
-                                    <i class="fas fa-envelope text-yellow-500 text-xl mr-3"></i>
-                                    <p class="text-yellow-700 dark:text-yellow-400">Your email is not verified. <a href="{{ route('verification.notice') }}" class="font-semibold underline hover:no-underline">Verify now</a></p>
-                                </div>
+                        <div class="mb-6 bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded-r-2xl animate-gentle">
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-orange-500 text-xl mr-3"></i>
+                                <p class="text-orange-700 dark:text-orange-400">Your email is not verified. <a href="{{ route('verification.notice') }}" class="font-semibold underline hover:no-underline">Verify now</a></p>
                             </div>
                         </div>
                     @endif

@@ -4,13 +4,13 @@
 
 @section('content')
 <div class="space-y-4">
-    <div class="flex items-center gap-4 animate-fade-in-up">
-        <a href="{{ route('bots.show', $bot) }}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition">
+    <div class="flex items-center gap-4 animate-gentle">
+        <a href="{{ route('bots.show', $bot) }}" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 transition">
             <i class="fas fa-arrow-left text-xl"></i>
         </a>
         <div>
-            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Chat History</h1>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Browse past conversations from {{ $bot->name }}</p>
+            <h1 class="text-2xl font-bold text-amber-800 dark:text-amber-200">Chat History 📜</h1>
+            <p class="text-sm text-amber-600 dark:text-amber-400 mt-1">Browse past conversations with {{ $bot->name }}</p>
         </div>
     </div>
 
