@@ -63,19 +63,19 @@ class WebhookController extends Controller
         $pollUrl = route('api.poll');
         $leadUrl = route('api.capture-lead');
 
-        $color = json_encode($bot->ui_color);
-        $bg = json_encode($bot->ui_bg_color);
-        $textColor = json_encode($bot->ui_text_color ?: '#333333');
-        $title = json_encode($bot->ui_title);
-        $welcomeMsg = json_encode($bot->ui_welcome_msg ?: 'Hello! How can I help you today?');
-        $placeholder = json_encode($bot->ui_placeholder ?: 'Type a message...');
-        $btnText = json_encode($bot->ui_btn_text ?: 'Send');
-        $posBottom = json_encode($bot->ui_pos_bottom ?: '20px');
-        $posRight = json_encode($bot->ui_pos_right ?: '20px');
-        $posLeft = json_encode($bot->ui_pos_left ?: 'auto');
-        $triggerRadius = json_encode($bot->ui_trigger_border_radius ?: '50%');
+        $color = json_encode($bot->ui_color ?? '#1677ff');
+        $bg = json_encode($bot->ui_bg_color ?? '#FFFFFF');
+        $textColor = json_encode($bot->ui_text_color ?? '#333333');
+        $title = json_encode($bot->ui_title ?? 'AI Assistant');
+        $welcomeMsg = json_encode($bot->ui_welcome_msg ?? 'Hello! How can I help you today?');
+        $placeholder = json_encode($bot->ui_placeholder ?? 'Type a message...');
+        $btnText = json_encode($bot->ui_btn_text ?? 'Send');
+        $posBottom = json_encode($bot->ui_pos_bottom ?? '20px');
+        $posRight = json_encode($bot->ui_pos_right ?? '20px');
+        $posLeft = json_encode($bot->ui_pos_left ?? 'auto');
+        $triggerRadius = json_encode($bot->ui_trigger_border_radius ?? '50%');
 
-        $triggerIconRaw = $bot->ui_trigger_icon ?: '💬';
+        $triggerIconRaw = $bot->ui_trigger_icon ?? '💬';
         if (filter_var($triggerIconRaw, FILTER_VALIDATE_URL)) {
             $triggerIcon = "<img src='" . e($triggerIconRaw) . "' style='width:100%; height:100%; border-radius:{$triggerRadius}; object-fit:cover; pointer-events:none;' alt='Chat' />";
         } else {
@@ -89,11 +89,11 @@ class WebhookController extends Controller
         $clearOnClose = $bot->ui_clear_on_close ? 'true' : 'false';
         $preChatEnabled = $bot->ui_pre_chat_form ? 'true' : 'false';
 
-        $preChatMsg = json_encode($bot->ui_pre_chat_msg ?: 'Please enter your information to start support:');
-        $preChatNameLabel = json_encode($bot->ui_pre_chat_name_label ?: 'Full Name *');
-        $preChatPhoneLabel = json_encode($bot->ui_pre_chat_phone_label ?: 'Phone Number *');
-        $preChatBtnText = json_encode($bot->ui_pre_chat_btn_text ?: 'Start Chat');
-        $preChatErrorMsg = json_encode($bot->ui_pre_chat_error_msg ?: 'Please fill in all required information.');
+        $preChatMsg = json_encode($bot->ui_pre_chat_msg ?? 'Please enter your information to start support:');
+        $preChatNameLabel = json_encode($bot->ui_pre_chat_name_label ?? 'Full Name *');
+        $preChatPhoneLabel = json_encode($bot->ui_pre_chat_phone_label ?? 'Phone Number *');
+        $preChatBtnText = json_encode($bot->ui_pre_chat_btn_text ?? 'Start Chat');
+        $preChatErrorMsg = json_encode($bot->ui_pre_chat_error_msg ?? 'Please fill in all required information.');
 
         $js = view('embed.script', compact(
             'apiKey', 'apiUrl', 'pollUrl', 'leadUrl',
