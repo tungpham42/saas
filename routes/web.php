@@ -122,12 +122,12 @@ Route::prefix('api/saas/v1')->group(function () {
     Route::post('capture-lead', [WebhookController::class, 'captureLead'])->name('api.capture-lead');
 
     // Social Channel Webhooks (Dynamic routes)
-    Route::match(['get', 'post'], 'fb-webhook', [WebhookController::class, 'handle'])->name('api.webhook.fb');
-    Route::match(['get', 'post'], 'zalo-webhook', [WebhookController::class, 'handle'])->name('api.webhook.zalo');
-    Route::match(['get', 'post'], 'tiktok-webhook', [WebhookController::class, 'handle'])->name('api.webhook.tiktok');
-    Route::match(['get', 'post'], 'shopee-webhook', [WebhookController::class, 'handle'])->name('api.webhook.shopee');
-    Route::match(['get', 'post'], 'zalo-personal-webhook', [WebhookController::class, 'handle'])->name('api.webhook.zalo-personal');
-    Route::match(['get', 'post'], 'whatsapp-webhook', [WebhookController::class, 'handle'])->name('api.webhook.whatsapp');
+    Route::match(['get', 'post'], 'fb-webhook', [WebhookController::class, 'handleFacebook'])->name('api.webhook.fb');
+    Route::match(['get', 'post'], 'zalo-webhook', [WebhookController::class, 'handleZalo'])->name('api.webhook.zalo');
+    Route::match(['get', 'post'], 'tiktok-webhook', [WebhookController::class, 'handleTikTok'])->name('api.webhook.tiktok');
+    Route::match(['get', 'post'], 'shopee-webhook', [WebhookController::class, 'handleShopee'])->name('api.webhook.shopee');
+    Route::match(['get', 'post'], 'zalo-personal-webhook', [WebhookController::class, 'handleZaloPersonal'])->name('api.webhook.zalo-personal');
+    Route::match(['get', 'post'], 'whatsapp-webhook', [WebhookController::class, 'handleWhatsApp'])->name('api.webhook.whatsapp');
 });
 
 // Fallback route for 404
