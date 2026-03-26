@@ -43,8 +43,8 @@
         }
 
         .dark nav {
-            background: rgba(42, 42, 42, 0.6) !important;
-            border-color: rgba(42, 42, 42, 0.3) !important;
+            background: rgba(120, 53, 15, 0.6) !important;
+            border-color: rgba(120, 53, 15, 0.3) !important;
         }
 
         /* Glassmorphism Card Effect */
