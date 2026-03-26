@@ -322,12 +322,6 @@
                             <i x-show="isDarkMode" class="fas fa-sun text-lg"></i>
                         </button>
 
-                        <!-- Notifications -->
-                        <button class="relative px-3 py-2 rounded-full bg-amber-50 dark:bg-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
-                            <i class="fas fa-bell text-lg"></i>
-                            <span class="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse-soft"></span>
-                        </button>
-
                         <!-- User Menu -->
                         <div class="relative">
                             <button @click="userMenuOpen = !userMenuOpen"
