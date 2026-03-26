@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" x-data="themeManager()" x-init="initTheme()">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}"
+      x-data="themeManager()"
+      x-init="initTheme()"
+      :class="{ 'dark': isDarkMode }">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -268,9 +271,16 @@
     </style>
 
     @stack('styles')
+    <script>
+    (function() {
+        const theme = localStorage.getItem('theme');
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    })();
+    </script>
 </head>
 <body x-data="{ sidebarOpen: false, userMenuOpen: false }"
-      :class="{ 'dark': isDarkMode }"
       class="antialiased transition-all duration-300">
 
     <div class="min-h-screen">
