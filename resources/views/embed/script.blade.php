@@ -90,6 +90,7 @@
 
         .ai-chat-window {
             position: fixed;
+            max-height: calc(100vh - 100px) !important;
             bottom: calc(${settings.position.bottom} + 70px);
             ${settings.position.left !== 'auto' ? `left: ${settings.position.left};` : `right: ${settings.position.right};`}
             width: 380px;
