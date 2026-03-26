@@ -234,7 +234,7 @@
                 </div>
 
                 <!-- Pre-chat Form Settings -->
-                <div x-show="preChatForm" class="mt-4 p-4 bg-amber-50 dark:bg-gray-800 rounded-xl space-y-4">
+                <div x-show="preChatForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <h5 class="font-semibold text-amber-800 dark:text-amber-200">Pre-Chat Form Configuration</h5>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
