@@ -204,6 +204,7 @@
 
                     <div class="md:col-span-2">
                         <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="hidden" name="ui_trigger_bg_transparent" value="0">
                             <input type="checkbox" name="ui_trigger_bg_transparent" value="1" {{ ($bot->ui_trigger_bg_transparent ?? false) ? 'checked' : '' }} class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
                             <span class="text-sm font-semibold text-amber-700 dark:text-amber-300">
                                 <i class="fas fa-eye mr-2 text-amber-500"></i>Transparent Trigger Background
@@ -213,6 +214,7 @@
 
                     <div class="md:col-span-2">
                         <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="hidden" name="ui_clear_on_close" value="0">
                             <input type="checkbox" name="ui_clear_on_close" value="1" {{ ($bot->ui_clear_on_close ?? false) ? 'checked' : '' }} class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
                             <span class="text-sm font-semibold text-amber-700 dark:text-amber-300">
                                 <i class="fas fa-trash-alt mr-2 text-amber-500"></i>Clear Chat on Close
@@ -222,6 +224,7 @@
 
                     <div class="md:col-span-2">
                         <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="hidden" name="ui_pre_chat_form" value="0">
                             <input type="checkbox" name="ui_pre_chat_form" value="1" {{ ($bot->ui_pre_chat_form ?? false) ? 'checked' : '' }} class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
                             <span class="text-sm font-semibold text-amber-700 dark:text-amber-300">
                                 <i class="fas fa-clipboard-list mr-2 text-amber-500"></i>Enable Pre-Chat Form
@@ -231,7 +234,7 @@
                 </div>
 
                 <!-- Pre-chat Form Settings -->
-                <div x-show="document.querySelector('[name=ui_pre_chat_form]')?.checked" class="mt-4 p-4 bg-amber-50 dark:bg-gray-800 rounded-xl space-y-4">
+                <div x-show="preChatForm" class="mt-4 p-4 bg-amber-50 dark:bg-gray-800 rounded-xl space-y-4">
                     <h5 class="font-semibold text-amber-800 dark:text-amber-200">Pre-Chat Form Configuration</h5>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -358,6 +361,7 @@ function settingsManager() {
     return {
         provider: '{{ $bot->provider }}',
         temperature: {{ $bot->temperature ?? 0.5 }},
+        preChatForm: {{ $bot->ui_pre_chat_form ? 'true' : 'false' }},
     }
 }
 

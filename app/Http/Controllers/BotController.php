@@ -120,6 +120,10 @@ class BotController extends Controller
             'email_notify_timeout_mins' => 'nullable|integer|min:1',
         ]);
 
+        $validated['ui_trigger_bg_transparent'] = $request->boolean('ui_trigger_bg_transparent');
+        $validated['ui_clear_on_close'] = $request->boolean('ui_clear_on_close');
+        $validated['ui_pre_chat_form'] = $request->boolean('ui_pre_chat_form');
+
         $bot->update($validated);
 
         $this->clearBotCache($bot);
