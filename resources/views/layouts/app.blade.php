@@ -302,7 +302,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center">
-                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 rounded-xl text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all">
+                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-3 rounded-full text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all">
                             <i class="fas fa-bars text-xl"></i>
                         </button>
 
@@ -317,13 +317,13 @@
                     <div class="flex items-center space-x-3">
                         <!-- Theme Switcher -->
                         <button @click="toggleTheme()"
-                                class="p-2 rounded-xl bg-amber-50 dark:bg-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
+                                class="p-3 rounded-full bg-amber-50 dark:bg-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
                             <i x-show="!isDarkMode" class="fas fa-moon text-lg"></i>
                             <i x-show="isDarkMode" class="fas fa-sun text-lg"></i>
                         </button>
 
                         <!-- Notifications -->
-                        <button class="relative p-2 rounded-xl bg-amber-50 dark:bg-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
+                        <button class="relative p-3 rounded-full bg-amber-50 dark:bg-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
                             <i class="fas fa-bell text-lg"></i>
                             <span class="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full animate-pulse-soft"></span>
                         </button>
@@ -331,7 +331,7 @@
                         <!-- User Menu -->
                         <div class="relative">
                             <button @click="userMenuOpen = !userMenuOpen"
-                                    class="flex items-center space-x-3 p-2 rounded-xl bg-amber-50 dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
+                                    class="flex items-center space-x-3 p-3 rounded-full bg-amber-50 dark:bg-gray-800 hover:bg-amber-100 dark:hover:bg-gray-700 transition-all">
                                 <div class="gradient-warm rounded-full w-8 h-8 flex items-center justify-center">
                                     <span class="text-amber-900 dark:text-amber-100 text-sm font-semibold">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</span>
                                 </div>

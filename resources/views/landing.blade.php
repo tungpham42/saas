@@ -163,7 +163,7 @@
 
                     <!-- Theme Switcher -->
                     <button @click="toggleTheme()"
-                            class="p-2 rounded-xl bg-amber-100 dark:bg-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-gray-700 transition-all">
+                            class="p-3 rounded-full bg-amber-100 dark:bg-gray-800 text-amber-600 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-gray-700 transition-all">
                         <i x-show="!isDarkMode" class="fas fa-moon text-lg"></i>
                         <i x-show="isDarkMode" class="fas fa-sun text-lg"></i>
                     </button>
@@ -177,7 +177,7 @@
                 <!-- Mobile Menu Button -->
                 <div class="md:hidden flex items-center space-x-3">
                     <button @click="toggleTheme()"
-                            class="p-2 rounded-xl bg-amber-100 dark:bg-gray-800 text-amber-600 dark:text-amber-400">
+                            class="p-3 rounded-full bg-amber-100 dark:bg-gray-800 text-amber-600 dark:text-amber-400">
                         <i x-show="!isDarkMode" class="fas fa-moon text-lg"></i>
                         <i x-show="isDarkMode" class="fas fa-sun text-lg"></i>
                     </button>
