@@ -51,11 +51,6 @@
             color: #e8e6e3;
         }
 
-        .dark nav#topnav {
-            background: rgba(120, 53, 15, 0.6) !important;
-            border-color: rgba(120, 53, 15, 0.3) !important;
-        }
-
         /* Glassmorphism Card Effect */
         .glass-card {
             background: rgba(255, 255, 255, 0.9);
