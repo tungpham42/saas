@@ -285,6 +285,55 @@
                 </div>
             </div>
 
+            <!-- Embed Code Section -->
+            <div class="border-t border-amber-100 dark:border-gray-700 pt-6">
+                <h4 class="text-lg font-bold text-amber-800 dark:text-amber-200 mb-4">Embed Code & Preview 📋</h4>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Embed Code Column -->
+                    <div>
+                        <p class="text-sm text-amber-600 dark:text-amber-400 mb-4">Copy this code and paste it into your website:</p>
+                        <div class="bg-gray-900 dark:bg-gray-950 rounded-xl p-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-code text-amber-400"></i>
+                                    <span class="text-xs text-gray-400">JavaScript Embed Code</span>
+                                </div>
+                                <button onclick="copyEmbedCode()" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded transition">
+                                    <i class="fas fa-copy mr-1"></i> Copy
+                                </button>
+                            </div>
+                            <pre id="embed-code" class="text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap font-mono"><code>&lt;!-- AI Chat Widget --&gt;
+&lt;script src="{{ url('/') }}/api/saas/v1/embed.js?api_key={{ $bot->api_key }}" defer&gt;&lt;/script&gt;</code></pre>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                            <p class="text-xs text-blue-600 dark:text-blue-400">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                <strong>Note:</strong> The widget will appear in the bottom corner of your website with your custom settings.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Live Preview Column -->
+                    <div>
+                        <p class="text-sm text-amber-600 dark:text-amber-400 mb-4">Live Preview (click to test):</p>
+                        <div class="bg-gray-100 dark:bg-gray-800 rounded-xl p-4 relative" style="min-height: 400px;">
+                            <div class="text-center text-gray-500 dark:text-gray-400 text-sm mb-4">
+                                <i class="fas fa-desktop mr-1"></i> This is how your widget will look
+                            </div>
+                            <div id="widget-preview-container" class="relative">
+                                <!-- Widget will be injected here -->
+                                <div class="text-center text-gray-400 py-8">
+                                    <i class="fas fa-spinner fa-spin text-2xl"></i>
+                                    <p class="mt-2 text-xs">Loading preview...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex justify-end">
                 <button type="submit" class="btn-soft inline-flex items-center gap-2">
                     <i class="fas fa-save"></i>
@@ -303,5 +352,108 @@ function settingsManager() {
         temperature: {{ $bot->temperature ?? 0.5 }},
     }
 }
+
+function copyEmbedCode() {
+    const codeElement = document.getElementById('embed-code');
+    const range = document.createRange();
+    range.selectNode(codeElement);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+
+    // Show temporary notification
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+    setTimeout(() => {
+        button.innerHTML = originalText;
+    }, 2000);
+}
+
+// Load widget preview
+document.addEventListener('DOMContentLoaded', function() {
+    const previewContainer = document.getElementById('widget-preview-container');
+    if (previewContainer) {
+        // Clear loading message
+        previewContainer.innerHTML = '';
+
+        // Create a temporary div for the widget
+        const widgetDiv = document.createElement('div');
+        widgetDiv.id = 'preview-widget';
+        previewContainer.appendChild(widgetDiv);
+
+        // Load the embed script
+        const script = document.createElement('script');
+        script.src = '{{ url("/") }}/api/saas/v1/embed.js?api_key={{ $bot->api_key }}';
+        script.defer = true;
+        script.onload = function() {
+            console.log('Widget preview loaded');
+        };
+        script.onerror = function() {
+            previewContainer.innerHTML = '<div class="text-center text-red-500 py-4"><i class="fas fa-exclamation-triangle"></i><p class="text-xs mt-2">Failed to load widget preview. Make sure the embed endpoint is accessible.</p></div>';
+        };
+        document.body.appendChild(script);
+    }
+});
 </script>
 @endpush
+
+<style>
+/* Preview container styles */
+#widget-preview-container {
+    position: relative;
+    min-height: 300px;
+}
+
+/* Ensure preview doesn't conflict with page layout */
+#preview-widget {
+    position: relative;
+    z-index: 10;
+}
+
+/* Override for preview - make widget visible within container */
+#widget-preview-container .ai-chat-trigger {
+    position: relative !important;
+    bottom: auto !important;
+    right: auto !important;
+    left: auto !important;
+    margin: 0 auto 20px auto !important;
+    display: inline-flex !important;
+}
+
+#widget-preview-container .ai-chat-window {
+    position: relative !important;
+    bottom: auto !important;
+    right: auto !important;
+    left: auto !important;
+    margin: 0 auto !important;
+    display: block !important;
+}
+
+#widget-preview-container .ai-chat-window.closed {
+    display: none !important;
+}
+
+/* Preview controls */
+.preview-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 20;
+}
+
+.preview-controls button {
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.preview-controls button:hover {
+    background: rgba(0,0,0,0.9);
+}
+</style>
