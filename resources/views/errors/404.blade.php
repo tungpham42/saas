@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lost? Let's Find Your Way - SaaS AI Chatbot</title>
 
+    <meta name="description" content="Multi-tenant AI Chatbot platform. Issue API keys, customize bots, Live Chat & History." />
+    <meta property="og:image" content="@yield('og_image', asset('1200x630.jpg'))" />
+    <meta property="og:image:type" content="image/jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:title" content="@yield('title', 'SaaS AI Chatbot')" />
+    <meta property="og:description" content="Multi-tenant AI Chatbot platform. Issue API keys, customize bots, Live Chat & History." />
+
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon-16x16.png') }}">
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('apple-touch-icon.png') }}">

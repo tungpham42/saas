@@ -310,7 +310,7 @@
                                     <i class="fas fa-code text-amber-400"></i>
                                     <span class="text-xs text-gray-400">JavaScript Embed Code</span>
                                 </div>
-                                <button onclick="copyEmbedCode()" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded transition">
+                                <button onclick="copyEmbedCode(); return false; " class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-3 py-1 rounded transition">
                                     <i class="fas fa-copy mr-1"></i> Copy
                                 </button>
                             </div>
