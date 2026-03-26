@@ -254,7 +254,7 @@
             labels: @json($chartData->pluck('date')),
             datasets: [{
                 label: 'New Members',
-                data: @json($chartData->pluck('messages')->map(function($item) { return rand(0, 8); })),
+                data: @json($chartData->pluck('messages')),
                 backgroundColor: 'rgba(245, 158, 11, 0.8)',
                 borderRadius: 8
             }]

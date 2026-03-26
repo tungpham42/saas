@@ -105,6 +105,186 @@
                 </div>
             </div>
 
+            <!-- UI Customization Section -->
+            <div class="border-t border-amber-100 dark:border-gray-700 pt-6">
+                <h4 class="text-lg font-bold text-amber-800 dark:text-amber-200 mb-4">Chat Widget UI 🎨</h4>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-heading mr-2 text-amber-500"></i>Title
+                        </label>
+                        <input type="text" name="ui_title" value="{{ $bot->ui_title ?? 'AI Assistant' }}" class="input-warm w-full">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-smile mr-2 text-amber-500"></i>Welcome Message
+                        </label>
+                        <input type="text" name="ui_welcome_msg" value="{{ $bot->ui_welcome_msg ?? 'Hello! How can I help you today?' }}" class="input-warm w-full">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-edit mr-2 text-amber-500"></i>Placeholder Text
+                        </label>
+                        <input type="text" name="ui_placeholder" value="{{ $bot->ui_placeholder ?? 'Type a message...' }}" class="input-warm w-full">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-paper-plane mr-2 text-amber-500"></i>Button Text
+                        </label>
+                        <input type="text" name="ui_btn_text" value="{{ $bot->ui_btn_text ?? 'Send' }}" class="input-warm w-full">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-palette mr-2 text-amber-500"></i>Primary Color
+                        </label>
+                        <input type="color" name="ui_color" value="{{ $bot->ui_color ?? '#1677ff' }}" class="h-10 w-full rounded-lg border border-amber-200">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-fill-drip mr-2 text-amber-500"></i>Background Color
+                        </label>
+                        <input type="color" name="ui_bg_color" value="{{ $bot->ui_bg_color ?? '#FFFFFF' }}" class="h-10 w-full rounded-lg border border-amber-200">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-font mr-2 text-amber-500"></i>Text Color
+                        </label>
+                        <input type="color" name="ui_text_color" value="{{ $bot->ui_text_color ?? '#333333' }}" class="h-10 w-full rounded-lg border border-amber-200">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-arrows-alt mr-2 text-amber-500"></i>Position (Bottom)
+                        </label>
+                        <input type="text" name="ui_pos_bottom" value="{{ $bot->ui_pos_bottom ?? '20px' }}" class="input-warm w-full" placeholder="20px">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-arrows-alt-h mr-2 text-amber-500"></i>Position (Right)
+                        </label>
+                        <input type="text" name="ui_pos_right" value="{{ $bot->ui_pos_right ?? '20px' }}" class="input-warm w-full" placeholder="20px">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-arrows-alt-h mr-2 text-amber-500"></i>Position (Left)
+                        </label>
+                        <input type="text" name="ui_pos_left" value="{{ $bot->ui_pos_left ?? 'auto' }}" class="input-warm w-full" placeholder="auto">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-comment-dots mr-2 text-amber-500"></i>Trigger Icon
+                        </label>
+                        <input type="text" name="ui_trigger_icon" value="{{ $bot->ui_trigger_icon ?? '💬' }}" class="input-warm w-full" maxlength="2">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-border-all mr-2 text-amber-500"></i>Trigger Border Radius
+                        </label>
+                        <input type="text" name="ui_trigger_border_radius" value="{{ $bot->ui_trigger_border_radius ?? '50%' }}" class="input-warm w-full" placeholder="50%">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="ui_trigger_bg_transparent" value="1" {{ ($bot->ui_trigger_bg_transparent ?? false) ? 'checked' : '' }} class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                            <span class="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                                <i class="fas fa-eye mr-2 text-amber-500"></i>Transparent Trigger Background
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="ui_clear_on_close" value="1" {{ ($bot->ui_clear_on_close ?? false) ? 'checked' : '' }} class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                            <span class="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                                <i class="fas fa-trash-alt mr-2 text-amber-500"></i>Clear Chat on Close
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="ui_pre_chat_form" value="1" {{ ($bot->ui_pre_chat_form ?? false) ? 'checked' : '' }} class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                            <span class="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                                <i class="fas fa-clipboard-list mr-2 text-amber-500"></i>Enable Pre-Chat Form
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Pre-chat Form Settings -->
+                <div x-show="document.querySelector('[name=ui_pre_chat_form]')?.checked" class="mt-4 p-4 bg-amber-50 dark:bg-gray-800 rounded-xl space-y-4">
+                    <h5 class="font-semibold text-amber-800 dark:text-amber-200">Pre-Chat Form Configuration</h5>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Form Message</label>
+                            <input type="text" name="ui_pre_chat_msg" value="{{ $bot->ui_pre_chat_msg ?? 'Please enter your information to start support:' }}" class="input-warm w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Name Label</label>
+                            <input type="text" name="ui_pre_chat_name_label" value="{{ $bot->ui_pre_chat_name_label ?? 'Full Name *' }}" class="input-warm w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Phone Label</label>
+                            <input type="text" name="ui_pre_chat_phone_label" value="{{ $bot->ui_pre_chat_phone_label ?? 'Phone Number *' }}" class="input-warm w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Button Text</label>
+                            <input type="text" name="ui_pre_chat_btn_text" value="{{ $bot->ui_pre_chat_btn_text ?? 'Start Chat' }}" class="input-warm w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">Error Message</label>
+                            <input type="text" name="ui_pre_chat_error_msg" value="{{ $bot->ui_pre_chat_error_msg ?? 'Please fill in all required information.' }}" class="input-warm w-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin & History Settings -->
+            <div class="border-t border-amber-100 dark:border-gray-700 pt-6">
+                <h4 class="text-lg font-bold text-amber-800 dark:text-amber-200 mb-4">Admin & History ⚙️</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-clock mr-2 text-amber-500"></i>Admin Timeout (minutes)
+                        </label>
+                        <input type="number" name="admin_timeout_mins" value="{{ $bot->admin_timeout_mins ?? 15 }}" class="input-warm w-full">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-history mr-2 text-amber-500"></i>History Limit
+                        </label>
+                        <input type="number" name="history_limit" value="{{ $bot->history_limit ?? 5 }}" class="input-warm w-full">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-envelope mr-2 text-amber-500"></i>Email Notification Addresses
+                        </label>
+                        <input type="text" name="email_notify_addresses" value="{{ $bot->email_notify_addresses }}" class="input-warm w-full" placeholder="admin@example.com, support@example.com">
+                        <p class="text-xs text-amber-500 mt-1">Comma-separated email addresses</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
+                            <i class="fas fa-bell mr-2 text-amber-500"></i>Email Notification Timeout (minutes)
+                        </label>
+                        <input type="number" name="email_notify_timeout_mins" value="{{ $bot->email_notify_timeout_mins ?? 10 }}" class="input-warm w-full">
+                    </div>
+                </div>
+            </div>
+
             <div class="flex justify-end">
                 <button type="submit" class="btn-soft inline-flex items-center gap-2">
                     <i class="fas fa-save"></i>

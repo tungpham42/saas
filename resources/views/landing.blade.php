@@ -204,14 +204,6 @@
                         Learn More
                     </a>
                 </div>
-                <div class="mt-12 animate-gentle delay-300">
-                    <div class="relative">
-                        <div class="absolute inset-0 bg-gradient-to-t from-transparent to-amber-100/20 dark:to-amber-900/20 rounded-2xl"></div>
-                        <div class="gradient-warm rounded-2xl p-1 shadow-2xl">
-                            <img src="https://placehold.co/800x400/fbbf24/2c2418?text=AI+Chatbot+Demo" alt="Dashboard Preview" class="rounded-2xl mx-auto float-animation">
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>

@@ -72,7 +72,7 @@ class DashboardController extends Controller
         ));
     }
 
-    private function userDashboard($user)
+    public function userDashboard($user)
     {
         $botCount = $user->bots()->count();
         $botLimit = $user->bot_limit;
