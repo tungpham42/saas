@@ -112,7 +112,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // API Routes for Embed and Webhooks (Public)
-Route::prefix('api/saas/v1')->group(function () {
+Route::prefix('api/saas/v1')
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->group(function () {
     // Embed JavaScript
     Route::get('embed.js', [WebhookController::class, 'serveEmbed'])->name('embed.js');
 

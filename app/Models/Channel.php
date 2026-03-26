@@ -7,13 +7,32 @@ use Illuminate\Database\Eloquent\Model;
 class Channel extends Model
 {
     protected $fillable = [
-        'bot_id', 'channel_type', 'channel_name', 'is_active', 'config'
+        'bot_id',
+        'type',
+        'name',
+        'config',
+        'is_active'
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
         'config' => 'array',
+        'is_active' => 'boolean',
     ];
+
+    // Helper method to get config values safely
+    public function getConfig(string $key, $default = null)
+    {
+        return $this->config[$key] ?? $default;
+    }
+
+    // Helper method to set config values
+    public function setConfig(string $key, $value): self
+    {
+        $config = $this->config ?? [];
+        $config[$key] = $value;
+        $this->config = $config;
+        return $this;
+    }
 
     public function bot()
     {
