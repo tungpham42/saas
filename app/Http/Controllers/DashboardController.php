@@ -23,7 +23,7 @@ class DashboardController extends Controller
         return $this->userDashboard($user);
     }
 
-    private function adminDashboard()
+    public function adminDashboard()
     {
         $totalUsers = User::where('role', 'user')->count();
         $totalBots = Bot::count();
