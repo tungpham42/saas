@@ -15,6 +15,13 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
+                    <label class="block text-sm font-semibold mb-2">Bot Name</label>
+                    <input type="text" name="name"
+                        value="{{ $bot->name }}"
+                        class="input-warm w-full"
+                        required>
+                </div>
+                <div>
                     <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
                         <i class="fas fa-cloud-upload-alt mr-2 text-amber-500"></i>AI Provider
                     </label>
