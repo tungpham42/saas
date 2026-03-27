@@ -269,7 +269,7 @@
                         <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
                             <i class="fas fa-clock mr-2 text-amber-500"></i>Admin Timeout (minutes)
                         </label>
-                        <input type="number" name="admin_timeout_mins" value="{{ $bot->admin_timeout_mins ?? 15 }}" class="input-warm w-full">
+                        <input type="number" name="admin_timeout_mins" min="1" step="1" value="{{ $bot->admin_timeout_mins ?? 15 }}" class="input-warm w-full">
                     </div>
 
                     <div>
@@ -291,7 +291,7 @@
                         <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
                             <i class="fas fa-bell mr-2 text-amber-500"></i>Email Notification Timeout (minutes)
                         </label>
-                        <input type="number" name="email_notify_timeout_mins" value="{{ $bot->email_notify_timeout_mins ?? 10 }}" class="input-warm w-full">
+                        <input type="number" name="email_notify_timeout_mins" min="1" step="1" value="{{ $bot->email_notify_timeout_mins ?? 10 }}" class="input-warm w-full">
                     </div>
                 </div>
             </div>
