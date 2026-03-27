@@ -10,6 +10,7 @@ use App\Models\SessionStat;
 use App\Models\Lead;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
 
 class BotController extends Controller
 {
@@ -105,6 +106,7 @@ class BotController extends Controller
             'ui_pos_right' => 'nullable|string|max:20',
             'ui_pos_left' => 'nullable|string|max:20',
             'ui_trigger_icon' => 'nullable|string',
+            'ui_trigger_custom_icon' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:1024', // Thêm validation cho custom icon
             'ui_trigger_bg_transparent' => 'boolean',
             'ui_trigger_border_radius' => 'nullable|string|max:20',
             'ui_clear_on_close' => 'boolean',
@@ -123,6 +125,25 @@ class BotController extends Controller
         $validated['ui_trigger_bg_transparent'] = $request->boolean('ui_trigger_bg_transparent');
         $validated['ui_clear_on_close'] = $request->boolean('ui_clear_on_close');
         $validated['ui_pre_chat_form'] = $request->boolean('ui_pre_chat_form');
+
+        // Xử lý upload custom icon
+        if ($request->hasFile('ui_trigger_custom_icon')) {
+            // Xóa icon cũ nếu có
+            if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
+                unlink(public_path($bot->ui_trigger_custom_icon));
+            }
+
+            $iconFile = $request->file('ui_trigger_custom_icon');
+            $iconName = 'bot_' . $bot->id . '_icon_' . time() . '.' . $iconFile->getClientOriginalExtension();
+            $iconPath = $iconFile->move(public_path('uploads/bot-icons'), $iconName);
+            $validated['ui_trigger_custom_icon'] = 'uploads/bot-icons/' . $iconName;
+        } elseif ($request->has('remove_custom_icon') && $request->remove_custom_icon) {
+            // Xóa custom icon nếu người dùng chọn remove
+            if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
+                unlink(public_path($bot->ui_trigger_custom_icon));
+            }
+            $validated['ui_trigger_custom_icon'] = null;
+        }
 
         $bot->update($validated);
 

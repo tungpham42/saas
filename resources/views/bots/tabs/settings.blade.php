@@ -192,7 +192,55 @@
                         <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
                             <i class="fas fa-comment-dots mr-2 text-amber-500"></i>Trigger Icon
                         </label>
-                        <input type="text" name="ui_trigger_icon" value="{{ $bot->ui_trigger_icon ?? '💬' }}" class="input-warm w-full" maxlength="2">
+
+                        <!-- Option selector: Emoji or Custom Image -->
+                        <div class="mb-3">
+                            <div class="flex gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="icon_type" value="emoji" x-model="iconType" class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                                    <span class="text-sm text-amber-700 dark:text-amber-300">Emoji Icon</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="icon_type" value="custom" x-model="iconType" class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
+                                    <span class="text-sm text-amber-700 dark:text-amber-300">Custom Image</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Emoji input (shown when emoji is selected) -->
+                        <div x-show="iconType === 'emoji'" x-cloak>
+                            <input type="text" name="ui_trigger_icon" value="{{ $bot->ui_trigger_icon ?? '💬' }}" class="input-warm w-full" maxlength="2" placeholder="💬">
+                            <p class="text-xs text-amber-500 mt-1">Enter an emoji (max 2 characters)</p>
+                        </div>
+
+                        <!-- Custom image upload (shown when custom is selected) -->
+                        <div x-show="iconType === 'custom'" x-cloak>
+                            <div class="space-y-3">
+                                @if($bot->ui_trigger_custom_icon)
+                                    <div class="flex items-center gap-3 p-3 bg-amber-50 dark:bg-gray-800 rounded-xl">
+                                        <img src="{{ asset($bot->ui_trigger_custom_icon) }}" alt="Current icon" class="w-12 h-12 object-contain rounded-lg border border-amber-200">
+                                        <div class="flex-1">
+                                            <p class="text-sm text-amber-700 dark:text-amber-300">Current custom icon</p>
+                                            <label class="flex items-center gap-2 cursor-pointer mt-1">
+                                                <input type="checkbox" name="remove_custom_icon" value="1" class="rounded border-amber-300 text-red-500 focus:ring-red-500">
+                                                <span class="text-xs text-red-600 dark:text-red-400">Remove this icon</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <div>
+                                    <input type="file" name="ui_trigger_custom_icon" accept="image/png,image/jpg,image/jpeg,image/svg+xml,image/webp" class="input-warm w-full" @change="handleIconUpload">
+                                    <p class="text-xs text-amber-500 mt-1">Upload PNG, JPG, JPEG, SVG, WEBP (Max 1MB). Recommended size: 48x48px</p>
+                                </div>
+
+                                <!-- Preview for new upload -->
+                                <div x-show="iconPreview" x-cloak class="p-3 bg-amber-50 dark:bg-gray-800 rounded-xl">
+                                    <p class="text-xs text-amber-600 dark:text-amber-400 mb-2">Preview:</p>
+                                    <img :src="iconPreview" class="w-12 h-12 object-contain rounded-lg border border-amber-200">
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
@@ -200,6 +248,7 @@
                             <i class="fas fa-border-all mr-2 text-amber-500"></i>Trigger Border Radius
                         </label>
                         <input type="text" name="ui_trigger_border_radius" value="{{ $bot->ui_trigger_border_radius ?? '50%' }}" class="input-warm w-full" placeholder="50%">
+                        <p class="text-xs text-amber-500 mt-1">Border radius for trigger button (e.g., 50% for circle, 12px for rounded square)</p>
                     </div>
 
                     <div class="md:col-span-2">
@@ -362,6 +411,21 @@ function settingsManager() {
         provider: '{{ $bot->provider }}',
         temperature: {{ $bot->temperature ?? 0.5 }},
         preChatForm: {{ $bot->ui_pre_chat_form ? 'true' : 'false' }},
+        iconType: '{{ $bot->ui_trigger_custom_icon ? "custom" : "emoji" }}',
+        iconPreview: null,
+
+        handleIconUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.iconPreview = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                this.iconPreview = null;
+            }
+        }
     }
 }
 

@@ -17,7 +17,8 @@ class Bot extends Model
         'ui_pos_left', 'ui_trigger_icon', 'ui_trigger_bg_transparent', 'ui_trigger_border_radius',
         'ui_clear_on_close', 'ui_pre_chat_form', 'ui_pre_chat_msg', 'ui_pre_chat_name_label',
         'ui_pre_chat_phone_label', 'ui_pre_chat_btn_text', 'ui_pre_chat_error_msg',
-        'admin_timeout_mins', 'history_limit', 'email_notify_addresses', 'email_notify_timeout_mins'
+        'admin_timeout_mins', 'history_limit', 'email_notify_addresses', 'email_notify_timeout_mins',
+        'ui_trigger_custom_icon' // Thêm field mới
     ];
 
     protected $casts = [
@@ -34,6 +35,13 @@ class Bot extends Model
         static::creating(function ($bot) {
             if (empty($bot->api_key)) {
                 $bot->api_key = 'sk_live_' . Str::random(24);
+            }
+        });
+
+        static::deleting(function ($bot) {
+            // Xóa file icon custom khi xóa bot
+            if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
+                unlink(public_path($bot->ui_trigger_custom_icon));
             }
         });
     }
@@ -77,5 +85,14 @@ class Bot extends Model
     public function getActiveChannels()
     {
         return $this->channels()->where('is_active', true)->get();
+    }
+
+    // Helper method để lấy trigger icon (custom hoặc emoji)
+    public function getTriggerIcon()
+    {
+        if ($this->ui_trigger_custom_icon && file_exists(public_path($this->ui_trigger_custom_icon))) {
+            return '<img src="' . asset($this->ui_trigger_custom_icon) . '" alt="icon" style="width: 24px; height: 24px;">';
+        }
+        return $this->ui_trigger_icon ?? '💬';
     }
 }

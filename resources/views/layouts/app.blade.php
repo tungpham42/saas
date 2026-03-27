@@ -372,6 +372,10 @@
         .new-session {
             animation: flashNew 1s ease-in-out;
         }
+
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
 
     @stack('styles')
