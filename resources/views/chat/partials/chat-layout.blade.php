@@ -1,6 +1,5 @@
 <div x-data="chatManager()" x-init="init()" class="card-warm overflow-hidden">
     <div class="flex flex-col lg:flex-row h-[calc(100vh-200px)] min-h-[500px]">
-        <!-- Sidebar - Sessions List -->
         <div class="w-full lg:w-80 border-r border-amber-100 dark:border-gray-700 flex flex-col bg-amber-50/30 dark:bg-gray-800/30">
             <div class="p-4 border-b border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <h3 class="font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
@@ -19,7 +18,6 @@
                 </form>
                 @endif
 
-                <!-- Date Filter -->
                 <form method="GET" class="mt-3 space-y-2">
                     <input type="hidden" name="tab" value="{{ $isLive ? 'live-chat' : 'history' }}">
                     <div class="relative">
@@ -43,7 +41,6 @@
                 </form>
             </div>
 
-            <!-- Sessions List -->
             <div class="flex-1 overflow-y-auto p-2 space-y-1">
                 @forelse($sessions as $session)
                 <?php
@@ -85,9 +82,8 @@
             </div>
         </div>
 
-        <!-- Main Chat Area -->
         <div class="flex-1 flex flex-col bg-white dark:bg-gray-800">
-            @if($selectedSession && $messages && count($messages) > 0)
+            @if($selectedSession)
                 <div class="p-4 border-b border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-wrap justify-between items-center gap-3 sticky top-0 z-10">
                     <div class="flex items-center gap-2">
                         <div class="gradient-warm rounded-full w-8 h-8 flex items-center justify-center">
@@ -102,7 +98,7 @@
                     </div>
                     <div class="flex gap-2">
                         <a href="{{ route('bots.export-session', $bot) }}?session_id={{ urlencode($selectedSession) }}"
-                           class="px-3 py-1.5 text-sm bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 dark:hover:bg-gray-600 rounded-xl transition flex items-center gap-1 text-amber-600">
+                        class="px-3 py-1.5 text-sm bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 dark:hover:bg-gray-600 rounded-xl transition flex items-center gap-1 text-amber-600">
                             <i class="fas fa-download"></i>
                             <span>Save</span>
                         </a>
@@ -120,39 +116,37 @@
                     </div>
                 </div>
 
-                <!-- Messages Container -->
                 <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-amber-50/30 to-white dark:from-gray-900 dark:to-gray-800">
-                    @foreach($messages as $msg)
-                        @include('chat.partials.message-bubble', ['message' => $msg])
-                    @endforeach
+                    @if($messages && count($messages) > 0)
+                        @foreach($messages as $msg)
+                            @include('chat.partials.message-bubble', ['message' => $msg])
+                        @endforeach
+                    @else
+                        <div id="empty-state" class="flex-1 flex flex-col items-center justify-center h-full opacity-80">
+                            <div class="text-6xl mb-4">💭</div>
+                            <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">Start the Conversation</h3>
+                            <p class="text-amber-500 dark:text-amber-400 mt-2">Be the first to say hello!</p>
+                        </div>
+                    @endif
                 </div>
 
-                <!-- Reply Form -->
                 @if($isLive)
                 <div class="p-4 border-t border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800">
-                    <form id="reply-form" class="flex gap-2">
+                    <form id="reply-form" @submit.prevent="sendReply" class="flex gap-2">
                         @csrf
                         <input type="hidden" name="session_id" value="{{ $selectedSession }}">
                         <div class="flex-1 relative">
                             <input type="text" name="message" id="reply-message"
-                                   class="w-full px-4 py-3 pr-12 border border-amber-200 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-700 text-amber-800 dark:text-amber-200"
-                                   placeholder="Type a warm reply..." autocomplete="off">
-                            <button type="submit"
-                                    class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 btn-soft rounded-xl text-sm">
+                                class="w-full px-4 py-3 pr-12 border border-amber-200 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-700 text-amber-800 dark:text-amber-200"
+                                placeholder="Type a warm reply..." autocomplete="off">
+                            <button type="submit" id="reply-submit-btn"
+                                    class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 btn-soft rounded-xl text-sm disabled:opacity-50">
                                 Send 💝
                             </button>
                         </div>
                     </form>
                 </div>
                 @endif
-            @elseif($selectedSession && (!$messages || count($messages) == 0))
-                <div class="flex-1 flex items-center justify-center">
-                    <div class="text-center p-8">
-                        <div class="text-6xl mb-4">💭</div>
-                        <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">Start the Conversation</h3>
-                        <p class="text-amber-500 dark:text-amber-400 mt-2">Be the first to say hello!</p>
-                    </div>
-                </div>
             @else
                 <div class="flex-1 flex items-center justify-center">
                     <div class="text-center p-8">
@@ -170,7 +164,8 @@
 <script>
 function chatManager() {
     return {
-        lastMsgId: {{ $messages && count($messages) > 0 ? ($messages->last()->id ?? 0) : 0 }},
+        // [FIX] Ensure we reliably obtain the absolute highest numeric ID to prevent repeating loads, regardless of sort order
+        lastMsgId: {{ $messages && count($messages) > 0 ? ($messages->max('id') ?? 0) : 0 }},
         pollingInterval: null,
         isPolling: false,
 
@@ -181,9 +176,6 @@ function chatManager() {
 
             const container = document.getElementById('chat-messages');
             if (container) container.scrollTop = container.scrollHeight;
-
-            const form = document.getElementById('reply-form');
-            if (form) form.addEventListener('submit', (e) => this.sendReply(e));
         },
 
         startPolling() {
@@ -196,14 +188,17 @@ function chatManager() {
             this.isPolling = true;
 
             try {
-                const response = await fetch(`{{ route('bots.poll', $bot) }}?session_id={{ $selectedSession }}&last_id=${this.lastMsgId}`);
+                // [FIX] Used urlencode dynamically to ensure safety against special chars like & and ? inside session IDs
+                const response = await fetch(`{{ route('bots.poll', $bot) }}?session_id={{ urlencode($selectedSession) }}&last_id=${this.lastMsgId}`);
                 const data = await response.json();
 
                 if (data.messages && data.messages.length > 0) {
                     data.messages.forEach(msg => {
-                        if (msg.id > this.lastMsgId) {
+                        // [FIX] Parse as Int to ensure Javascript doesn't coercively compare them as strings leading to overlap bugs
+                        const msgId = parseInt(msg.id, 10);
+                        if (msgId > this.lastMsgId) {
                             this.appendMessage(msg);
-                            this.lastMsgId = msg.id;
+                            this.lastMsgId = msgId;
                         }
                     });
                 }
@@ -218,23 +213,83 @@ function chatManager() {
             const container = document.getElementById('chat-messages');
             if (!container) return;
 
+            const emptyState = document.getElementById('empty-state');
+            if (emptyState) emptyState.remove();
+
             const messageHtml = this.renderMessage(message);
             container.insertAdjacentHTML('beforeend', messageHtml);
             container.scrollTop = container.scrollHeight;
         },
 
+        async sendReply(event) {
+            const input = document.getElementById('reply-message');
+            const btn = document.getElementById('reply-submit-btn');
+            const message = input.value.trim();
+            if (!message) return;
+
+            input.disabled = true;
+            if (btn) btn.disabled = true;
+
+            try {
+                const response = await fetch('{{ route('bots.send-reply', $bot) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        session_id: @json($selectedSession), // [FIX] Safe encoding injection to prevent JSON string breaks
+                        content: message, // [FIX] Added explicit content payload (matching the DB schema requirements)
+                        message: message,
+                        role: 'admin' // [FIX] Added admin role enforcement to trigger 'human takeover' pausing safely
+                    })
+                });
+
+                // [FIX] Properly check if the fetch resolved without errors before clearing
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                input.value = '';
+            } catch (error) {
+                Swal.fire('Oops!', 'Could not send message. Try again?', 'error');
+            } finally {
+                input.disabled = false;
+                if (btn) btn.disabled = false;
+                input.focus();
+            }
+        },
+
+        escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        },
+
+        formatMessage(text) {
+            if (!text) return '';
+            let escaped = this.escapeHtml(text);
+            escaped = escaped.replace(/\n/g, '<br>');
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return escaped.replace(urlRegex, '<a href="$1" target="_blank" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mx-1" title="Open Link"><i class="fas fa-link"></i></a>');
+        },
+
         renderMessage(message) {
             const isUser = message.role === 'user';
             const isAdmin = message.role === 'admin';
-            const align = isUser ? 'justify-end' : 'justify-start';
-            const bgClass = isUser ? 'gradient-warm text-amber-900' :
-                           (isAdmin ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' : 'bg-white dark:bg-gray-700 border border-amber-200 dark:border-gray-600 text-amber-800 dark:text-amber-200');
-            const roleLabel = isUser ? 'You' : (isAdmin ? '✨ Admin' : '🤖 AI Assistant');
-            const roleIcon = isUser ? 'fa-user' : (isAdmin ? 'fa-user-tie' : 'fa-robot');
+
+            const align = isAdmin ? 'justify-end' : 'justify-start';
+            const bgClass = isAdmin ? 'gradient-warm text-amber-900' :
+                           (isUser ? 'bg-white dark:bg-gray-700 border border-amber-200 dark:border-gray-600 text-amber-800 dark:text-amber-200' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300');
+            const roleLabel = isAdmin ? 'You' : (isUser ? 'Customer' : '🤖 AI Assistant');
+            const roleIcon = isAdmin ? 'fa-user-tie' : (isUser ? 'fa-user' : 'fa-robot');
             const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             return `
-                <div class="flex ${align} animate-gentle">
+                <div class="flex ${align} animate-gentle group">
                     <div class="max-w-[75%] ${bgClass} rounded-2xl p-3 shadow-sm">
                         <div class="flex items-center gap-2 text-xs opacity-70 mb-1">
                             <i class="fas ${roleIcon}"></i>
@@ -242,45 +297,11 @@ function chatManager() {
                             <span>•</span>
                             <span>${time}</span>
                         </div>
-                        <div class="text-sm whitespace-pre-wrap break-words leading-relaxed">${this.escapeHtml(message.content)}</div>
+                        <div class="text-sm whitespace-pre-wrap break-words leading-relaxed">${this.formatMessage(message.content)}</div>
                     </div>
                 </div>
             `;
         },
-
-        async sendReply(event) {
-            event.preventDefault();
-            const input = document.getElementById('reply-message');
-            const message = input.value.trim();
-            if (!message) return;
-
-            input.disabled = true;
-            try {
-                await fetch('{{ route('bots.send-reply', $bot) }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        session_id: '{{ $selectedSession }}',
-                        message: message
-                    })
-                });
-                input.value = '';
-            } catch (error) {
-                Swal.fire('Oops!', 'Could not send message. Try again?', 'error');
-            } finally {
-                input.disabled = false;
-                input.focus();
-            }
-        },
-
-        escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
     }
 }
 
