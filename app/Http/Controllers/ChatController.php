@@ -132,7 +132,15 @@ class ChatController extends Controller
                 'has_recent_admin' => $this->hasRecentAdminReply($bot, $session->session_id),
                 'channel_name' => $sessionInfo['channel_name'] ?? null,
                 'icon' => $sessionInfo['icon'] ?? '💬',
-                'channel_type' => $sessionInfo['type'] ?? 'web'
+                'channel_type' => $sessionInfo['type'] ?? 'web',
+
+                // 🔥 ADD THIS
+                'html' => view('chat.partials.session-item', [
+                    'session' => $session,
+                    'sessionInfo' => $sessionInfo,
+                    'isActive' => false,
+                    'bot' => $bot
+                ])->render()
             ];
         }
 

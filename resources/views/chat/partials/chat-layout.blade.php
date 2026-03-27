@@ -438,7 +438,9 @@ function chatManager() {
 
                     // Auto-jump to new session if in live mode
                     if (this.isLive && newSessions.length > 0) {
-                        const latestSession = data.sessions[0];
+                        data.sessions.sort((a, b) => {
+                            return new Date(b.last_time) - new Date(a.last_time);
+                        });
 
                         // Only auto-jump if the user hasn't manually selected a different session
                         if (!this.userManuallySelectedSession) {
@@ -466,21 +468,26 @@ function chatManager() {
         },
 
         renderSessionsList(sessions) {
-            sessions.forEach((session) => {
-                try {
-                    // Use CSS.escape to safely query IDs that might contain special characters
-                    const safeId = CSS.escape(session.session_id);
-                    const item = document.querySelector(`[data-session-id="${safeId}"]`);
+            const container = document.getElementById('sessions-list');
+            const sentinel = document.getElementById('sessions-sentinel');
 
-                    if (item) {
-                        const timeSpan = item.querySelector('.session-last-time span:first-child');
-                        const countSpan = item.querySelector('.session-msg-count span:first-child');
-                        if (timeSpan) timeSpan.textContent = new Date(session.last_time).toLocaleString();
-                        if (countSpan) countSpan.textContent = session.msgs;
-                    }
-                } catch (e) {
-                    console.warn("Could not update session item", e);
+            if (!container) return;
+
+            // Clear list (trừ sentinel + loading)
+            container.querySelectorAll('[data-session-id]').forEach(el => el.remove());
+
+            sessions.forEach(session => {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = session.html ?? this.buildSessionHTML(session);
+
+                const el = tempDiv.firstElementChild;
+
+                // 👉 Highlight active session
+                if (session.session_id === this.selectedSessionId) {
+                    el.classList.add('bg-amber-100', 'dark:bg-gray-700', 'ring-2', 'ring-amber-400');
                 }
+
+                container.insertBefore(el, sentinel);
             });
         },
 
