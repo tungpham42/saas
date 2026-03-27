@@ -214,7 +214,7 @@ function chatManager() {
         isLive: {{ $isLive ? 'true' : 'false' }},
         currentSessions: [],
         knownSessionIds: new Set(),
-        userManuallySelectedSession: false, // Track if user manually selected a session
+        userManuallySelectedSession: true, // Track if user manually selected a session
 
         // Pagination properties
         sessionsPage: 1,
