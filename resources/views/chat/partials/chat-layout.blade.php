@@ -30,6 +30,10 @@
                             <i class="fas fa-comments text-amber-500"></i>
                             <span>{{ $isLive ? '💬 Live Chats' : '📜 Chat History' }}</span>
                         </h3>
+                        @if($isLive)
+                        <span x-show="newSessionsCount > 0" x-text="newSessionsCount"
+                              class="bg-red-500 text-white text-xs rounded-full px-2 py-1 animate-pulse"></span>
+                        @endif
                     </div>
 
                     @if(!$isLive)
@@ -191,6 +195,30 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* New session highlight animation */
+@keyframes highlight-flash {
+    0% { background-color: rgba(34, 197, 94, 0); border-left-color: transparent; }
+    50% { background-color: rgba(34, 197, 94, 0.3); border-left-color: #22c55e; }
+    100% { background-color: rgba(34, 197, 94, 0); border-left-color: transparent; }
+}
+
+.session-item-highlight {
+    animation: highlight-flash 2s ease-out;
+    border-left: 3px solid #22c55e;
+}
+
+/* Message counter badge */
+.session-msg-count .new-badge {
+    background-color: #ef4444;
+    color: white;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.9; }
+}
 </style>
 <script>
 function parseMarkdown(text) {
@@ -215,6 +243,8 @@ function chatManager() {
         currentSessions: [],
         knownSessionIds: new Set(),
         userManuallySelectedSession: {{ $selectedSession ? 'true' : 'false' }},
+        newSessionsCount: 0,
+        sessionMessageCounts: new Map(), // Track message counts per session
 
         // Pagination properties
         sessionsPage: 1,
@@ -230,20 +260,30 @@ function chatManager() {
         loadingOlderMessages: false,
 
         init() {
-            // Pre-populate known sessions from existing HTML to prevent "all sessions are new" bug on first load
+            // Initialize message counts for known sessions
+            this.initSessionMessageCounts();
+
+            // Pre-populate known sessions from existing HTML
             document.querySelectorAll('#sessions-list [data-session-id]').forEach(el => {
-                this.knownSessionIds.add(el.getAttribute('data-session-id'));
+                const sessionId = el.getAttribute('data-session-id');
+                this.knownSessionIds.add(sessionId);
+                // Store initial message count
+                const countSpan = el.querySelector('.session-msg-count span:first-child');
+                if (countSpan) {
+                    this.sessionMessageCounts.set(sessionId, parseInt(countSpan.textContent) || 0);
+                }
             });
 
-            // Use event delegation for clicking sessions, preventing duplicate event listeners
+            // Use event delegation for clicking sessions
             const sessionsListContainer = document.getElementById('sessions-list');
             if (sessionsListContainer) {
                 sessionsListContainer.addEventListener('click', (e) => {
                     const item = e.target.closest('[data-session-id]');
-                    // Make sure we didn't click an unrelated anchor tag inside the item
                     if (item && !e.target.closest('a')) {
                         e.preventDefault();
                         this.userManuallySelectedSession = true;
+                        // Reset new session count when clicking on a session
+                        this.newSessionsCount = 0;
                         this.selectSession(item.getAttribute('data-session-id'));
                     }
                 });
@@ -256,10 +296,64 @@ function chatManager() {
 
             this.scrollToBottom();
             this.loadSessionsList();
-            // this.updateKnownSessions(); <-- Remove this line. It's handled safely now.
             this.setupAutoScroll();
             this.setupInfiniteScroll();
             this.setupMessageScrollPagination();
+
+            // Start periodic sidebar refresh for live chat
+            if (this.isLive) {
+                setInterval(() => {
+                    this.refreshSidebarHighlights();
+                }, 3000);
+            }
+        },
+
+        initSessionMessageCounts() {
+            document.querySelectorAll('#sessions-list [data-session-id]').forEach(el => {
+                const sessionId = el.getAttribute('data-session-id');
+                const countSpan = el.querySelector('.session-msg-count span:first-child');
+                if (countSpan) {
+                    this.sessionMessageCounts.set(sessionId, parseInt(countSpan.textContent) || 0);
+                }
+            });
+        },
+
+        refreshSidebarHighlights() {
+            // Check for sessions that have new messages since last view
+            this.currentSessions.forEach(session => {
+                const currentCount = session.msgs;
+                const previousCount = this.sessionMessageCounts.get(session.session_id) || 0;
+
+                if (currentCount > previousCount && session.session_id !== this.selectedSessionId) {
+                    this.highlightSessionInSidebar(session.session_id, true);
+                }
+                this.sessionMessageCounts.set(session.session_id, currentCount);
+            });
+        },
+
+        highlightSessionInSidebar(sessionId, hasNewMessages = true) {
+            const safeId = CSS.escape(sessionId);
+            const sessionItem = document.querySelector(`[data-session-id="${safeId}"]`);
+            if (sessionItem && hasNewMessages) {
+                // Add highlight class
+                sessionItem.classList.add('session-item-highlight');
+
+                // Update message count badge to show new indicator
+                const countSpan = sessionItem.querySelector('.session-msg-count');
+                if (countSpan && !countSpan.querySelector('.new-badge')) {
+                    const badge = document.createElement('span');
+                    badge.className = 'new-badge ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold';
+                    badge.textContent = 'NEW';
+                    countSpan.appendChild(badge);
+                }
+
+                // Remove highlight after animation
+                setTimeout(() => {
+                    if (sessionItem) {
+                        sessionItem.classList.remove('session-item-highlight');
+                    }
+                }, 2000);
+            }
         },
 
         checkForMoreMessages() {
@@ -312,6 +406,9 @@ function chatManager() {
                         const sessionElement = tempDiv.firstElementChild;
 
                         container.insertBefore(sessionElement, sentinel);
+
+                        // Update message count tracking
+                        this.sessionMessageCounts.set(session.session_id, session.msgs);
                     });
 
                     this.sessionsPage = data.current_page;
@@ -386,7 +483,11 @@ function chatManager() {
         updateKnownSessions() {
             if (this.currentSessions && this.currentSessions.length > 0) {
                 this.currentSessions.forEach(session => {
-                    this.knownSessionIds.add(session.session_id);
+                    if (!this.knownSessionIds.has(session.session_id)) {
+                        this.knownSessionIds.add(session.session_id);
+                        // Increment new sessions counter
+                        this.newSessionsCount++;
+                    }
                 });
             }
         },
@@ -428,7 +529,7 @@ function chatManager() {
 
         async loadSessionsList() {
             try {
-                const url = `{{ route('bots.sessions-list', $bot) }}?date_preset=${encodeURIComponent(this.datePreset || '')}&filter_date=${encodeURIComponent(this.filterDate || '')}`;
+                const url = `{{ route('bots.sessions-list', $bot) }}?date_preset=${encodeURIComponent(this.datePreset || '')}&filter_date=${encodeURIComponent(this.filterDate || '')}&limit=100`;
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -437,14 +538,16 @@ function chatManager() {
                     this.currentSessions = data.sessions;
                     this.renderSessionsList(data.sessions);
 
-                    // Auto-jump to new session if in live mode
-                    if (this.isLive && newSessions.length > 0) {
-
-                        // Only auto-jump if the user hasn't manually selected a different session
-                        if (!this.userManuallySelectedSession) {
-                            const latestSession = data.sessions[0];
-                            this.jumpToSession(latestSession.session_id);
-                        }
+                    // Auto-jump to new session if in live mode and user hasn't manually selected
+                    if (this.isLive && newSessions.length > 0 && !this.userManuallySelectedSession) {
+                        const latestSession = data.sessions[0];
+                        this.jumpToSession(latestSession.session_id);
+                    } else if (this.isLive && newSessions.length > 0 && this.userManuallySelectedSession) {
+                        // Still highlight new sessions in sidebar
+                        newSessions.forEach(session => {
+                            this.highlightSessionInSidebar(session.session_id, true);
+                        });
+                        this.showNewSessionNotification(session.session_id);
                     }
 
                     this.updateKnownSessions();
@@ -472,33 +575,39 @@ function chatManager() {
 
             if (!container) return;
 
-            // Clear list (trừ sentinel + loading)
+            // Store current scroll position
+            const scrollTop = container.scrollTop;
+
+            // Clear list (keep sentinel)
             container.querySelectorAll('[data-session-id]').forEach(el => el.remove());
 
             sessions.forEach(session => {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = session.html ?? this.buildSessionHTML(session);
-
                 const el = tempDiv.firstElementChild;
 
-                // 👉 Highlight active session
+                // Highlight active session
                 if (session.session_id === this.selectedSessionId) {
-                    // reset class trước
-                    el.classList.remove('new-session', 'bg-amber-100', 'dark:bg-gray-700', 'ring-2', 'ring-amber-400', 'animate-pulse', 'bg-green-50', 'dark:bg-green-900/20');
-
-                    // highlight selected
-                    if (session.session_id === this.selectedSessionId) {
-                        el.classList.add('bg-amber-100', 'dark:bg-gray-700', 'ring-2', 'ring-amber-400');
-                    }
-
-                    // 🔥 highlight NEW session
-                    if (!this.knownSessionIds.has(session.session_id)) {
-                        el.classList.add('new-session', 'animate-pulse', 'bg-green-50', 'dark:bg-green-900/20');
+                    el.classList.add('bg-amber-100', 'dark:bg-gray-700', 'ring-2', 'ring-amber-400');
+                } else {
+                    // Check if this session has unread messages (not selected)
+                    const currentCount = session.msgs;
+                    const previousCount = this.sessionMessageCounts.get(session.session_id) || 0;
+                    if (currentCount > previousCount && this.isLive) {
+                        this.highlightSessionInSidebar(session.session_id, true);
                     }
                 }
 
-                container.prepend(el);
+                container.appendChild(el);
             });
+
+            // Restore scroll position
+            container.scrollTop = scrollTop;
+
+            // Add sentinel back if it was removed
+            if (sentinel && !container.contains(sentinel)) {
+                container.appendChild(sentinel);
+            }
         },
 
         renderEmptySessions() {
@@ -515,7 +624,14 @@ function chatManager() {
 
         async jumpToSession(sessionId) {
             if (sessionId === this.selectedSessionId) return;
+
+            // Show notification
             this.showNewSessionNotification(sessionId);
+
+            // Reset new sessions counter
+            this.newSessionsCount = 0;
+
+            // Select the session
             this.selectSession(sessionId);
 
             // Reset manual selection flag after 5 seconds to allow future auto-jumps
@@ -526,15 +642,15 @@ function chatManager() {
 
         showNewSessionNotification(sessionId) {
             const message = this.userManuallySelectedSession ?
-                'New chat available (staying on current view)' :
-                'Auto-jumping to the latest chat';
+                'New message received in another conversation 💬' :
+                'New conversation started! Auto-jumping to latest chat 💬';
 
             Swal.fire({
                 icon: 'info',
-                title: 'New Conversation Started! 💬',
+                title: 'New Activity!',
                 text: message,
                 toast: true,
-                timer: 3000,
+                timer: 4000,
                 showConfirmButton: false,
                 position: 'top-end',
                 background: '#fef3c7',
@@ -562,6 +678,14 @@ function chatManager() {
 
                 if (data.session) {
                     this.updateSessionSidebar(data.session);
+
+                    // Update message count for this session
+                    const currentCount = data.session.msgs;
+                    const previousCount = this.sessionMessageCounts.get(data.session.session_id) || 0;
+                    if (currentCount > previousCount && this.selectedSessionId !== data.session.session_id) {
+                        this.highlightSessionInSidebar(data.session.session_id, true);
+                    }
+                    this.sessionMessageCounts.set(data.session.session_id, currentCount);
                 }
 
             } catch (error) {
@@ -589,15 +713,29 @@ function chatManager() {
             const safeId = CSS.escape(session.session_id);
             const sessionItem = document.querySelector(`[data-session-id="${safeId}"]`);
             if (sessionItem) {
-                // 🔥 move session lên top khi có tin mới
+                // Move session to top when there's new activity
                 const container = document.getElementById('sessions-list');
                 if (sessionItem && container) {
                     container.prepend(sessionItem);
                 }
+
+                // Update time display
                 const timeSpan = sessionItem.querySelector('.session-last-time span:first-child');
+                if (timeSpan && session.last_time) {
+                    timeSpan.textContent = new Date(session.last_time).toLocaleString();
+                }
+
+                // Update message count
                 const countSpan = sessionItem.querySelector('.session-msg-count span:first-child');
-                if (timeSpan) timeSpan.textContent = new Date(session.last_time).toLocaleString();
-                if (countSpan) countSpan.textContent = session.msgs;
+                if (countSpan && session.msgs) {
+                    const oldCount = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = session.msgs;
+
+                    // Highlight if message count increased and not current session
+                    if (session.msgs > oldCount && this.selectedSessionId !== session.session_id) {
+                        this.highlightSessionInSidebar(session.session_id, true);
+                    }
+                }
             }
         },
 
@@ -667,6 +805,19 @@ function chatManager() {
             // Mark that user has manually selected a session
             this.userManuallySelectedSession = true;
 
+            // Clear highlight from this session
+            const safeId = CSS.escape(sessionId);
+            const sessionItem = document.querySelector(`[data-session-id="${safeId}"]`);
+            if (sessionItem) {
+                sessionItem.classList.remove('session-item-highlight');
+                const badge = sessionItem.querySelector('.new-badge');
+                if (badge) badge.remove();
+            }
+
+            // Reset message count for this session to prevent further highlighting
+            const currentCount = this.sessionMessageCounts.get(sessionId) || 0;
+            this.sessionMessageCounts.set(sessionId, currentCount);
+
             this.stopPolling();
             this.selectedSessionId = sessionId;
             this.lastMsgId = 0;
@@ -709,6 +860,10 @@ function chatManager() {
                 const data = await response.json();
 
                 if (data.success) {
+                    // Remove from tracking
+                    this.knownSessionIds.delete(sessionId);
+                    this.sessionMessageCounts.delete(sessionId);
+
                     await this.loadSessionsList();
 
                     if (this.selectedSessionId === sessionId) {
@@ -760,6 +915,11 @@ function chatManager() {
                 const data = await response.json();
 
                 if (data.success) {
+                    // Clear all tracking
+                    this.knownSessionIds.clear();
+                    this.sessionMessageCounts.clear();
+                    this.newSessionsCount = 0;
+
                     await this.loadSessionsList();
 
                     this.stopPolling();
@@ -836,6 +996,33 @@ function chatManager() {
                             <span>${time}</span>
                         </div>
                         <div class="text-sm whitespace-pre-wrap break-words leading-relaxed">${parseMarkdown(message.content)}</div>
+                    </div>
+                </div>
+            `;
+        },
+
+        buildSessionHTML(session) {
+            // Fallback HTML builder if server-side rendering fails
+            const channelIcon = session.icon || '💬';
+            const channelName = session.channel_name || (session.channel_type === 'web' ? 'Website' : 'Chat');
+            const lastTime = session.last_time ? new Date(session.last_time).toLocaleString() : '';
+
+            return `
+                <div class="session-item group p-3 rounded-xl cursor-pointer transition-all hover:bg-amber-50 dark:hover:bg-gray-700/50 border border-transparent hover:border-amber-200 dark:hover:border-gray-600 ${session.session_id === this.selectedSessionId ? 'bg-amber-100 dark:bg-gray-700 ring-2 ring-amber-400' : ''}" data-session-id="${session.session_id}">
+                    <div class="flex items-center gap-3">
+                        <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-sm">
+                            <span class="text-lg">${channelIcon}</span>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-amber-800 dark:text-amber-200 truncate">${channelName}</p>
+                                <span class="text-xs text-amber-500 dark:text-amber-400">${session.msgs} msgs</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-amber-400 dark:text-amber-500 mt-0.5">
+                                <i class="fas fa-clock text-xs"></i>
+                                <span>${lastTime || 'Just now'}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
