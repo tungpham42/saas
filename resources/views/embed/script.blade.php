@@ -455,12 +455,12 @@
         }
     }
 
-    // Poll for new messages
+    // Poll for new messages (Fix duplicate: add &role=admin)
     async function pollMessages() {
         if (!isOpen) return;
 
         try {
-            const response = await fetch(`${API_BASE}/poll?api_key=${API_KEY}&session_id=${sessionId}&last_id=${lastMessageId}`);
+            const response = await fetch(`${API_BASE}/poll?api_key=${API_KEY}&session_id=${sessionId}&last_id=${lastMessageId}&role=admin`);
             const data = await response.json();
 
             if (data.messages && data.messages.length > 0) {

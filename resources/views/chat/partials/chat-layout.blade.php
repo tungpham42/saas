@@ -179,7 +179,8 @@ function chatManager() {
         isPolling: false,
 
         init() {
-            @if($isLive && $selectedSession)
+            // [FIX] Start polling whenever a session is selected (works on both Live Chat & History)
+            @if($selectedSession)
                 this.startPolling();
             @endif
 
@@ -259,6 +260,16 @@ function chatManager() {
                 // [FIX] Properly check if the fetch resolved without errors before clearing
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
+                }
+
+                // [FIX] Immediately append the reply instead of waiting for the next poll cycle
+                const data = await response.json();
+                if (data.success && data.message) {
+                    const msgId = parseInt(data.message.id, 10);
+                    if (msgId > this.lastMsgId) {
+                        this.appendMessage(data.message);
+                        this.lastMsgId = msgId;
+                    }
                 }
 
                 input.value = '';

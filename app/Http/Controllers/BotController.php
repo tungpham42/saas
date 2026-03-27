@@ -71,8 +71,8 @@ class BotController extends Controller
 
         $tab = request('tab', 'settings');
 
-        // Get statistics for dashboard
-        $totalSessions = SessionStat::where('bot_id', $bot->id)->count();
+        // Get statistics for dashboard (Sourced accurately from ChatLog)
+        $totalSessions = ChatLog::where('bot_id', $bot->id)->distinct('session_id')->count('session_id');
         $totalLeads = Lead::where('bot_id', $bot->id)->count();
         $totalMessages = ChatLog::where('bot_id', $bot->id)->count();
 

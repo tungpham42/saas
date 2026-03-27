@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bot;
 use App\Models\SessionStat;
+use App\Models\ChatLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -27,57 +28,70 @@ class StatisticsController extends Controller
 
     private function getStatistics(Bot $bot, ?string $preset, ?string $date)
     {
-        $query = SessionStat::where('bot_id', $bot->id);
+        $chatLogQuery = ChatLog::where('bot_id', $bot->id);
+        $statQuery = SessionStat::where('bot_id', $bot->id);
 
         // Apply date filters
         if ($preset === 'today') {
-            $query->whereDate('start_time', today());
+            $chatLogQuery->whereDate('created_at', today());
+            $statQuery->whereDate('start_time', today());
         } elseif ($preset === 'yesterday') {
-            $query->whereDate('start_time', today()->subDay());
+            $chatLogQuery->whereDate('created_at', today()->subDay());
+            $statQuery->whereDate('start_time', today()->subDay());
         } elseif ($preset === 'last_7') {
-            $query->where('start_time', '>=', today()->subDays(7));
+            $chatLogQuery->where('created_at', '>=', today()->subDays(7));
+            $statQuery->where('start_time', '>=', today()->subDays(7));
         } elseif ($preset === 'this_month') {
-            $query->whereYear('start_time', today()->year)
-                  ->whereMonth('start_time', today()->month);
+            $chatLogQuery->whereYear('created_at', today()->year)
+                         ->whereMonth('created_at', today()->month);
+            $statQuery->whereYear('start_time', today()->year)
+                      ->whereMonth('start_time', today()->month);
         } elseif ($preset === 'last_month') {
             $lastMonth = today()->subMonth();
-            $query->whereYear('start_time', $lastMonth->year)
-                  ->whereMonth('start_time', $lastMonth->month);
+            $chatLogQuery->whereYear('created_at', $lastMonth->year)
+                         ->whereMonth('created_at', $lastMonth->month);
+            $statQuery->whereYear('start_time', $lastMonth->year)
+                      ->whereMonth('start_time', $lastMonth->month);
         } elseif ($preset === 'last_30') {
-            $query->where('start_time', '>=', today()->subDays(30));
+            $chatLogQuery->where('created_at', '>=', today()->subDays(30));
+            $statQuery->where('start_time', '>=', today()->subDays(30));
         } elseif ($preset === 'custom' && $date) {
-            $query->whereDate('start_time', $date);
+            $chatLogQuery->whereDate('created_at', $date);
+            $statQuery->whereDate('start_time', $date);
         }
 
-        $totalSessions = (clone $query)->count();
-        $takenOver = (clone $query)->whereNotNull('first_admin_time')->count();
-        $totalAdminMsgs = (clone $query)->sum('admin_msg_count');
+        // Base metrics sourced from ChatLog so that Analytics updates correctly for every interaction
+        $totalSessions = (clone $chatLogQuery)->distinct('session_id')->count('session_id');
+        $totalAdminMsgs = (clone $chatLogQuery)->where('role', 'admin')->count();
 
-        $avgFirstResponse = (clone $query)
+        // Admin intervention specifics sourced from SessionStat
+        $takenOver = (clone $statQuery)->whereNotNull('first_admin_time')->count();
+
+        $avgFirstResponse = (clone $statQuery)
             ->whereNotNull('first_admin_time')
             ->select(DB::raw('AVG(TIMESTAMPDIFF(SECOND, start_time, first_admin_time)) as avg'))
             ->value('avg') ?: 0;
 
-        $avgHandlingTime = (clone $query)
+        $avgHandlingTime = (clone $statQuery)
             ->whereNotNull('last_admin_time')
             ->whereNotNull('first_admin_time')
             ->select(DB::raw('AVG(TIMESTAMPDIFF(SECOND, first_admin_time, last_admin_time)) as avg'))
             ->value('avg') ?: 0;
 
-        $totalOnlineTime = (clone $query)
+        $totalOnlineTime = (clone $statQuery)
             ->whereNotNull('last_admin_time')
             ->whereNotNull('first_admin_time')
             ->select(DB::raw('SUM(TIMESTAMPDIFF(SECOND, first_admin_time, last_admin_time)) as total'))
             ->value('total') ?: 0;
 
-        // Get sessions per day for chart
+        // Get sessions per day for chart - using ChatLog for consistency
         $days = collect(range(6, 0))->map(function($days) {
             return today()->subDays($days)->format('Y-m-d');
         });
 
-        $sessionsByDay = SessionStat::where('bot_id', $bot->id)
-            ->where('start_time', '>=', today()->subDays(7))
-            ->select(DB::raw('DATE(start_time) as date'), DB::raw('count(*) as count'))
+        $sessionsByDay = ChatLog::where('bot_id', $bot->id)
+            ->where('created_at', '>=', today()->subDays(7))
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(DISTINCT session_id) as count'))
             ->groupBy('date')
             ->pluck('count', 'date')
             ->toArray();
