@@ -118,6 +118,7 @@ Route::prefix('api/saas/v1')
     ->group(function () {
     // Embed JavaScript
     Route::get('embed.js', [WebhookController::class, 'serveEmbed'])->name('embed.js');
+    Route::get('session-status', [WebhookController::class, 'sessionStatus'])->name('api.session-status');
 
     // Chat API Endpoints
     Route::post('chat', [WebhookController::class, 'chat'])->name('api.chat');
