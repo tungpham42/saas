@@ -1,3 +1,8 @@
+@extends('layouts.app')
+
+@section('title', ($isLive ? 'Live Chat' : 'Chat History') . ' - ' . $bot->name)
+
+@section('content')
 <div class="space-y-4">
     <div class="flex items-center gap-4 animate-gentle">
         <a href="{{ route('bots.show', $bot) }}" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 transition">
@@ -785,3 +790,4 @@ function chatManager() {
 }
 </script>
 @endpush
+@endsection
