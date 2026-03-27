@@ -140,7 +140,7 @@
 
         .ai-chat-header {
             background: ${settings.color};
-            color: white;
+            color: white !important;
             padding: 16px;
             border-radius: 16px 16px 0 0;
             display: flex;
@@ -152,6 +152,7 @@
             margin: 0;
             font-size: 18px;
             font-weight: 600;
+            color: white !important;
         }
 
         .ai-chat-close {
@@ -159,7 +160,7 @@
             font-size: 20px;
             background: none;
             border: none;
-            color: white;
+            color: white !important;
             font-weight: bold;
         }
 
@@ -198,7 +199,7 @@
 
         .ai-chat-message.user .ai-chat-bubble {
             background: ${settings.color};
-            color: white;
+            color: white !important;
             border-bottom-right-radius: 4px;
         }
 
@@ -255,7 +256,7 @@
 
         .ai-chat-send {
             background: ${settings.color};
-            color: white;
+            color: white !important;
             border: none;
             padding: 8px 20px;
             border-radius: 24px;
@@ -302,7 +303,7 @@
         .ai-chat-prechat button {
             width: 100%;
             background: ${settings.color};
-            color: white;
+            color: white !important;
             border: none;
             padding: 12px;
             border-radius: 12px;
