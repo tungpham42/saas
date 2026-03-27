@@ -337,7 +337,7 @@ function chatManager() {
 
         init() {
             // Initialize sessions from server data
-            const initialSessions = @json($sessions->map(function($session) use ($bot) {
+            const initialSessions = {!! json_encode($sessions->map(function($session) use ($bot) {
                 $sessionInfo = parseSessionId($session->session_id, $bot);
                 return [
                     'session_id' => $session->session_id,
@@ -350,7 +350,7 @@ function chatManager() {
                     'newMessage' => false,
                     'newMessagesCount' => 0,
                 ];
-            })->toArray());
+            })->toArray()) !!};
 
             this.sessions = initialSessions;
             this.displayedSessions = [...this.sessions];
@@ -361,7 +361,7 @@ function chatManager() {
             });
 
             // Initialize messages
-            this.messages = @json($messages ? $messages->map(function($msg) {
+            const initialMessages = {!! json_encode($messages ? $messages->map(function($msg) {
                 return [
                     'id' => $msg->id,
                     'session_id' => $msg->session_id,
@@ -369,7 +369,9 @@ function chatManager() {
                     'content' => $msg->content,
                     'created_at' => $msg->created_at?->toISOString(),
                 ];
-            })->toArray() : []);
+            })->toArray() : []) !!};
+
+            this.messages = initialMessages;
 
             // Setup event listeners
             if (this.selectedSessionId) {
