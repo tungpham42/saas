@@ -455,17 +455,19 @@
         }
     }
 
-    // Poll for new messages (Fix duplicate: add &role=admin)
+    // Poll for new messages (Fix - remove role=admin to get all messages including admin replies)
     async function pollMessages() {
         if (!isOpen) return;
 
         try {
-            const response = await fetch(`${API_BASE}/poll?api_key=${API_KEY}&session_id=${sessionId}&last_id=${lastMessageId}&role=admin`);
+            // Don't filter by role - we want to see all messages (user, bot, and admin)
+            const response = await fetch(`${API_BASE}/poll?api_key=${API_KEY}&session_id=${sessionId}&last_id=${lastMessageId}`);
             const data = await response.json();
 
             if (data.messages && data.messages.length > 0) {
                 data.messages.forEach(message => {
                     if (message.id > lastMessageId) {
+                        // Add message to chat - isUser is true only for 'user' role
                         addMessageToChat(message.content, message.role === 'user');
                         lastMessageId = message.id;
                     }
