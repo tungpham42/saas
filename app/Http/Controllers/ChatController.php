@@ -10,6 +10,7 @@ use App\Services\LLMService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
 
 class ChatController extends Controller
 {
@@ -154,9 +155,6 @@ class ChatController extends Controller
         $this->sendToExternalChannel($bot, $sessionId, $message);
 
         if ($request->ajax() || $request->wantsJson()) {
-            // Load the message with formatted data
-            $adminMsg->loadMissing('bot');
-
             return response()->json([
                 'success' => true,
                 'message' => [
@@ -164,7 +162,7 @@ class ChatController extends Controller
                     'session_id' => $adminMsg->session_id,
                     'role' => $adminMsg->role,
                     'content' => $adminMsg->content,
-                    'created_at' => $adminMsg->created_at->toISOString(),
+                    'created_at' => $this->formatDateForJson($adminMsg->created_at),
                 ],
                 'message_id' => $adminMsg->id,
                 'session_stats' => $this->getSessionStats($bot, $sessionId)
@@ -190,7 +188,7 @@ class ChatController extends Controller
 
         return [
             'msgs' => $messageCount,
-            'last_time' => $lastMessage?->created_at?->toISOString(),
+            'last_time' => $lastMessage ? $this->formatDateForJson($lastMessage->created_at) : null,
             'session_id' => $sessionId,
         ];
     }
@@ -408,7 +406,7 @@ class ChatController extends Controller
                     'session_id' => $message->session_id,
                     'role' => $message->role,
                     'content' => $message->content,
-                    'created_at' => $message->created_at->toISOString(),
+                    'created_at' => $this->formatDateForJson($message->created_at),
                 ];
             });
 
@@ -425,7 +423,7 @@ class ChatController extends Controller
             'messages' => $messages,
             'session' => $session ? [
                 'session_id' => $session->session_id,
-                'last_time' => $session->last_time ? $session->last_time->toISOString() : null,
+                'last_time' => $session->last_time ? $this->formatDateForJson($session->last_time) : null,
                 'msgs' => $session->msgs,
             ] : null,
             'last_id' => $lastMessageId
@@ -565,7 +563,15 @@ class ChatController extends Controller
         $messages = $bot->chatLogs()
             ->where('session_id', $sessionId)
             ->orderBy('created_at', 'asc')
-            ->get();
+            ->get()
+            ->map(function($message) {
+                return [
+                    'id' => $message->id,
+                    'role' => $message->role,
+                    'content' => $message->content,
+                    'created_at' => $this->formatDateForJson($message->created_at),
+                ];
+            });
 
         $stats = SessionStat::where('bot_id', $bot->id)
             ->where('session_id', $sessionId)
@@ -584,8 +590,8 @@ class ChatController extends Controller
             'lead' => $lead,
             'channel' => $channelInfo,
             'message_count' => $messages->count(),
-            'start_time' => $messages->first()?->created_at,
-            'last_activity' => $messages->last()?->created_at,
+            'start_time' => $messages->first()['created_at'] ?? null,
+            'last_activity' => $messages->last()['created_at'] ?? null,
         ]);
     }
 
@@ -639,6 +645,36 @@ class ChatController extends Controller
             'is_external' => false,
             'icon' => '🌐',
         ];
+    }
+
+    /**
+     * Format date for JSON response
+     * Safely handles both Carbon instances and string dates
+     */
+    private function formatDateForJson($date): ?string
+    {
+        if (empty($date)) {
+            return null;
+        }
+
+        try {
+            if ($date instanceof \Carbon\Carbon) {
+                return $date->toISOString();
+            }
+
+            if (is_string($date)) {
+                return Carbon::parse($date)->toISOString();
+            }
+
+            if ($date instanceof \DateTime) {
+                return Carbon::instance($date)->toISOString();
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            \Log::error('Date formatting error: ' . $e->getMessage(), ['date' => $date]);
+            return null;
+        }
     }
 
     /**
