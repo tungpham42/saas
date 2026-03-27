@@ -156,9 +156,6 @@ class BotController extends Controller
             }
         }
 
-        // Remove icon_type from the array so Eloquent doesn't try to insert it into a database column
-        unset($validated['icon_type']);
-
         $bot->update($validated);
 
         $this->clearBotCache($bot);

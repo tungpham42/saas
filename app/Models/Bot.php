@@ -18,7 +18,7 @@ class Bot extends Model
         'ui_clear_on_close', 'ui_pre_chat_form', 'ui_pre_chat_msg', 'ui_pre_chat_name_label',
         'ui_pre_chat_phone_label', 'ui_pre_chat_btn_text', 'ui_pre_chat_error_msg',
         'admin_timeout_mins', 'history_limit', 'email_notify_addresses', 'email_notify_timeout_mins',
-        'ui_trigger_custom_icon' // Thêm field mới
+        'ui_trigger_custom_icon', 'icon_type' // Thêm field mới
     ];
 
     protected $casts = [
