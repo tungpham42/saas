@@ -287,7 +287,7 @@
         }
 
         .ai-chat-prechat input {
-            width: 100%;
+            width: stretch;
             padding: 12px;
             margin-bottom: 12px;
             border: 1px solid #e5e7eb;
