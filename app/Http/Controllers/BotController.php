@@ -105,6 +105,7 @@ class BotController extends Controller
             'ui_pos_bottom' => 'nullable|string|max:20',
             'ui_pos_right' => 'nullable|string|max:20',
             'ui_pos_left' => 'nullable|string|max:20',
+            'icon_type' => 'required|in:emoji,custom', // Validate the radio button choice
             'ui_trigger_icon' => 'nullable|string',
             'ui_trigger_custom_icon' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:1024',
             'ui_trigger_border_radius' => 'nullable|string|max:20',
@@ -118,29 +119,45 @@ class BotController extends Controller
         $validated['ui_clear_on_close'] = $request->boolean('ui_clear_on_close');
         $validated['ui_pre_chat_form'] = $request->boolean('ui_pre_chat_form');
 
-        // Handle custom icon upload
-        if ($request->hasFile('ui_trigger_custom_icon')) {
-            // Delete old icon if it exists
-            if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
-                @unlink(public_path($bot->ui_trigger_custom_icon));
-            }
-
-            $iconFile = $request->file('ui_trigger_custom_icon');
-            $iconName = 'bot_' . $bot->id . '_icon_' . time() . '.' . $iconFile->getClientOriginalExtension();
-            $iconFile->move(public_path('uploads/bot-icons'), $iconName);
-
-            $validated['ui_trigger_custom_icon'] = 'uploads/bot-icons/' . $iconName;
-
-        } elseif ($request->boolean('remove_custom_icon')) {
-            // Delete custom icon if user chooses to remove it
+        // Handle Mutually Exclusive Icon Logic
+        if ($validated['icon_type'] === 'emoji') {
+            // User chose Emoji: Delete the custom image file and set path to null
             if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
                 @unlink(public_path($bot->ui_trigger_custom_icon));
             }
             $validated['ui_trigger_custom_icon'] = null;
 
         } else {
-            unset($validated['ui_trigger_custom_icon']);
+            // User chose Custom Image: Clear the Emoji text so the widget prioritizes the image
+            $validated['ui_trigger_icon'] = null;
+
+            // Process image upload
+            if ($request->hasFile('ui_trigger_custom_icon')) {
+                // Delete old icon before saving the new one
+                if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
+                    @unlink(public_path($bot->ui_trigger_custom_icon));
+                }
+
+                $iconFile = $request->file('ui_trigger_custom_icon');
+                $iconName = 'bot_' . $bot->id . '_icon_' . time() . '.' . $iconFile->getClientOriginalExtension();
+                $iconFile->move(public_path('uploads/bot-icons'), $iconName);
+
+                $validated['ui_trigger_custom_icon'] = 'uploads/bot-icons/' . $iconName;
+
+            } elseif ($request->boolean('remove_custom_icon')) {
+                if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
+                    @unlink(public_path($bot->ui_trigger_custom_icon));
+                }
+                $validated['ui_trigger_custom_icon'] = null;
+
+            } else {
+                // Keep the existing custom icon path if no new file is uploaded
+                unset($validated['ui_trigger_custom_icon']);
+            }
         }
+
+        // Remove icon_type from the array so Eloquent doesn't try to insert it into a database column
+        unset($validated['icon_type']);
 
         $bot->update($validated);
 
