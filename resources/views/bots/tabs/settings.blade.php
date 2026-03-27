@@ -75,10 +75,10 @@
                     <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
                         <i class="fas fa-text-height mr-2 text-amber-500"></i>Response Length
                     </label>
-                    <input type="number" name="max_tokens"
+                    <input type="number" name="max_tokens" min="512" step="512"
                            value="{{ $bot->max_tokens ?? 1024 }}"
                            class="input-warm w-full">
-                    <p class="text-xs text-amber-500 mt-1">1000 tokens ≈ 750 words - Keep it cozy!</p>
+                    <p class="text-xs text-amber-500 mt-1">1024 tokens ≈ 750 words - Keep it cozy!</p>
                 </div>
             </div>
 
@@ -276,7 +276,7 @@
                         <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">
                             <i class="fas fa-history mr-2 text-amber-500"></i>History Limit
                         </label>
-                        <input type="number" name="history_limit" value="{{ $bot->history_limit ?? 5 }}" class="input-warm w-full">
+                        <input type="number" name="history_limit" min="0" step="1" value="{{ $bot->history_limit ?? 5 }}" class="input-warm w-full">
                     </div>
 
                     <div class="md:col-span-2">
