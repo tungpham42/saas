@@ -70,9 +70,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('bots/{bot}')->group(function () {
         Route::get('/live-chat', [ChatController::class, 'liveChat'])->name('bots.live-chat');
         Route::get('/history', [ChatController::class, 'history'])->name('bots.history');
-        Route::post('/send-reply', [ChatController::class, 'sendAdminReply'])->name('bots.send-reply');
-        Route::get('/poll', [ChatController::class, 'pollMessages'])->name('bots.poll');
+
+        // AJAX endpoints
         Route::get('/sessions-list', [ChatController::class, 'getSessionsList'])->name('bots.sessions-list');
+        Route::get('/load-more-sessions', [ChatController::class, 'loadMoreSessions'])->name('bots.load-more-sessions');
+        Route::get('/load-more-messages', [ChatController::class, 'loadMoreMessages'])->name('bots.load-more-messages');
+        Route::get('/poll', [ChatController::class, 'pollMessages'])->name('bots.poll');
+        Route::post('/send-reply', [ChatController::class, 'sendAdminReply'])->name('bots.send-reply');
         Route::post('/clear-session', [ChatController::class, 'clearSession'])->name('bots.clear-session');
         Route::post('/clear-all-chats', [ChatController::class, 'clearAllChats'])->name('bots.clear-all-chats');
         Route::get('/export-session', [ChatController::class, 'exportSession'])->name('bots.export-session');

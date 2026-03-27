@@ -30,9 +30,11 @@ class ChatController extends Controller
 
         $datePreset = request('date_preset');
         $filterDate = request('filter_date');
+        $page = request('page', 1);
+        $perPage = 20;
 
-        // Get sessions with filters
-        $sessions = $this->getSessions($bot, $datePreset, $filterDate, 20);
+        // Get paginated sessions with filters
+        $sessions = $this->getSessionsPaginated($bot, $datePreset, $filterDate, $perPage, $page);
 
         // Get selected session messages
         $selectedSession = request('session_id');
@@ -50,7 +52,7 @@ class ChatController extends Controller
 
         return view('chat.live', compact(
             'bot', 'sessions', 'messages', 'selectedSession',
-            'datePreset', 'filterDate', 'channels'
+            'datePreset', 'filterDate', 'channels', 'page', 'perPage'
         ));
     }
 
@@ -63,9 +65,11 @@ class ChatController extends Controller
 
         $datePreset = request('date_preset');
         $filterDate = request('filter_date');
+        $page = request('page', 1);
+        $perPage = 50;
 
-        // Get sessions with filters
-        $sessions = $this->getSessions($bot, $datePreset, $filterDate, 50);
+        // Get paginated sessions with filters
+        $sessions = $this->getSessionsPaginated($bot, $datePreset, $filterDate, $perPage, $page);
 
         // Get selected session messages
         $selectedSession = request('session_id');
@@ -83,12 +87,12 @@ class ChatController extends Controller
 
         return view('chat.history', compact(
             'bot', 'sessions', 'messages', 'selectedSession',
-            'datePreset', 'filterDate', 'channels'
+            'datePreset', 'filterDate', 'channels', 'page', 'perPage'
         ));
     }
 
     /**
-     * Get updated sessions list (for polling)
+     * Get updated sessions list (for polling) - WITHOUT DB::raw
      */
     public function getSessionsList(Request $request, Bot $bot)
     {
@@ -96,8 +100,27 @@ class ChatController extends Controller
 
         $datePreset = $request->query('date_preset');
         $filterDate = $request->query('filter_date');
+        $limit = $request->query('limit', 50);
 
-        $sessions = $this->getSessions($bot, $datePreset, $filterDate, 50);
+        // Get all chat logs with date filters
+        $query = $bot->chatLogs();
+        $query = $this->applyDateFiltersToQuery($query, $datePreset, $filterDate);
+
+        // Get all logs and process in memory to avoid DB::raw
+        $chatLogs = $query->orderBy('created_at', 'desc')->get();
+
+        // Group by session_id and calculate statistics
+        $sessions = $chatLogs->groupBy('session_id')->map(function ($logs, $sessionId) {
+            $lastMessage = $logs->sortByDesc('created_at')->first();
+
+            return (object) [
+                'session_id' => $sessionId,
+                'last_time' => $lastMessage->created_at,
+                'msgs' => $logs->count(),
+            ];
+        })->sortByDesc(function ($session) {
+            return $session->last_time;
+        })->take($limit)->values();
 
         $formattedSessions = [];
         foreach ($sessions as $session) {
@@ -120,15 +143,161 @@ class ChatController extends Controller
     }
 
     /**
-     * Get sessions based on date filters
+     * Load more sessions via AJAX (for infinite scroll)
+     */
+    public function loadMoreSessions(Request $request, Bot $bot)
+    {
+        $this->authorizeBot($bot);
+
+        $datePreset = $request->query('date_preset');
+        $filterDate = $request->query('filter_date');
+        $page = $request->query('page', 1);
+        $perPage = $request->query('per_page', 20);
+
+        $sessions = $this->getSessionsPaginated($bot, $datePreset, $filterDate, $perPage, $page);
+
+        $formattedSessions = [];
+        foreach ($sessions as $session) {
+            $sessionInfo = $this->parseSessionId($session->session_id, $bot);
+            $formattedSessions[] = [
+                'session_id' => $session->session_id,
+                'last_time' => $this->formatDateForJson($session->last_time),
+                'msgs' => $session->msgs,
+                'has_recent_admin' => $this->hasRecentAdminReply($bot, $session->session_id),
+                'channel_name' => $sessionInfo['channel_name'] ?? null,
+                'icon' => $sessionInfo['icon'] ?? '💬',
+                'channel_type' => $sessionInfo['type'] ?? 'web',
+                'html' => view('chat.partials.session-item', [
+                    'session' => $session,
+                    'sessionInfo' => $sessionInfo,
+                    'isActive' => false,
+                    'bot' => $bot
+                ])->render()
+            ];
+        }
+
+        return response()->json([
+            'sessions' => $formattedSessions,
+            'current_page' => $sessions->currentPage(),
+            'last_page' => $sessions->lastPage(),
+            'total' => $sessions->total(),
+            'has_more' => $sessions->hasMorePages()
+        ]);
+    }
+
+    /**
+     * Load more messages for a session (for message pagination)
+     */
+    public function loadMoreMessages(Request $request, Bot $bot)
+    {
+        $this->authorizeBot($bot);
+
+        $sessionId = $request->query('session_id');
+        $page = $request->query('page', 1);
+        $perPage = $request->query('per_page', 50);
+
+        if (!$sessionId) {
+            return response()->json(['error' => 'Session ID required'], 400);
+        }
+
+        $messages = $bot->chatLogs()
+            ->where('session_id', $sessionId)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        $formattedMessages = [];
+        foreach ($messages as $message) {
+            $formattedMessages[] = [
+                'id' => $message->id,
+                'session_id' => $message->session_id,
+                'role' => $message->role,
+                'content' => $message->content,
+                'created_at' => $this->formatDateForJson($message->created_at),
+                'html' => view('chat.partials.message-bubble', ['message' => $message])->render()
+            ];
+        }
+
+        return response()->json([
+            'messages' => $formattedMessages,
+            'current_page' => $messages->currentPage(),
+            'last_page' => $messages->lastPage(),
+            'total' => $messages->total(),
+            'has_more' => $messages->hasMorePages()
+        ]);
+    }
+
+    /**
+     * Get paginated sessions based on date filters
+     */
+    private function getSessionsPaginated(Bot $bot, ?string $datePreset, ?string $filterDate, int $perPage, int $page)
+    {
+        // Get all chat logs with date filters
+        $query = $bot->chatLogs();
+        $query = $this->applyDateFiltersToQuery($query, $datePreset, $filterDate);
+
+        // Get all logs and process in memory
+        $chatLogs = $query->orderBy('created_at', 'desc')->get();
+
+        // Group by session_id and calculate statistics
+        $allSessions = $chatLogs->groupBy('session_id')->map(function ($logs, $sessionId) {
+            $lastMessage = $logs->sortByDesc('created_at')->first();
+
+            return (object) [
+                'session_id' => $sessionId,
+                'last_time' => $lastMessage->created_at,
+                'msgs' => $logs->count(),
+            ];
+        })->sortByDesc(function ($session) {
+            return $session->last_time;
+        })->values();
+
+        // Paginate manually
+        $total = $allSessions->count();
+        $offset = ($page - 1) * $perPage;
+        $paginatedSessions = $allSessions->slice($offset, $perPage)->values();
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $paginatedSessions,
+            $total,
+            $perPage,
+            $page,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+    }
+
+    /**
+     * Get sessions based on date filters - WITHOUT DB::raw
      */
     private function getSessions(Bot $bot, ?string $datePreset, ?string $filterDate, int $limit)
     {
-        $query = $bot->chatLogs()
-            ->select('session_id', DB::raw('MAX(created_at) as last_time'), DB::raw('COUNT(*) as msgs'))
-            ->groupBy('session_id');
+        // Get all chat logs with date filters
+        $query = $bot->chatLogs();
+        $query = $this->applyDateFiltersToQuery($query, $datePreset, $filterDate);
 
-        // Apply date filters
+        // Get all logs and process in memory
+        $chatLogs = $query->orderBy('created_at', 'desc')->get();
+
+        // Group by session_id and calculate statistics
+        $sessions = $chatLogs->groupBy('session_id')->map(function ($logs, $sessionId) {
+            $lastMessage = $logs->sortByDesc('created_at')->first();
+
+            return (object) [
+                'session_id' => $sessionId,
+                'last_time' => $lastMessage->created_at,
+                'msgs' => $logs->count(),
+            ];
+        })->sortByDesc(function ($session) {
+            return $session->last_time;
+        })->take($limit)->values();
+
+        return $sessions;
+    }
+
+    /**
+     * Apply date filters to query (without DB::raw)
+     */
+    private function applyDateFiltersToQuery($query, ?string $datePreset, ?string $filterDate)
+    {
         if ($datePreset === 'today') {
             $query->whereDate('created_at', today());
         } elseif ($datePreset === 'yesterday') {
@@ -148,9 +317,7 @@ class ChatController extends Controller
             $query->whereDate('created_at', $filterDate);
         }
 
-        return $query->orderBy('last_time', 'desc')
-            ->limit($limit)
-            ->get();
+        return $query;
     }
 
     /**
@@ -442,12 +609,19 @@ class ChatController extends Controller
                 ];
             });
 
-        // Get updated session info
-        $session = $bot->chatLogs()
-            ->selectRaw('session_id, MAX(created_at) as last_time, COUNT(*) as msgs')
+        // Get updated session info without DB::raw
+        $sessionLogs = $bot->chatLogs()
             ->where('session_id', $sessionId)
-            ->groupBy('session_id')
-            ->first();
+            ->get();
+
+        $session = null;
+        if ($sessionLogs->isNotEmpty()) {
+            $session = (object) [
+                'session_id' => $sessionId,
+                'last_time' => $sessionLogs->max('created_at'),
+                'msgs' => $sessionLogs->count(),
+            ];
+        }
 
         $lastMessageId = $messages->isNotEmpty() ? $messages->last()['id'] : $lastId;
 
@@ -565,23 +739,30 @@ class ChatController extends Controller
 
         $timeoutMins = $bot->admin_timeout_mins ?? 15;
 
-        // Get sessions that have user messages but no recent admin replies
-        $unreadSessions = $bot->chatLogs()
-            ->select('session_id')
-            ->where('role', 'user')
-            ->whereNotIn('session_id', function($query) use ($bot, $timeoutMins) {
-                $query->select('session_id')
-                    ->from('chat_logs')
-                    ->where('bot_id', $bot->id)
-                    ->where('role', 'admin')
-                    ->where('created_at', '>=', DB::raw("DATE_SUB(NOW(), INTERVAL {$timeoutMins} MINUTE)"));
-            })
-            ->groupBy('session_id')
-            ->get();
+        // Get all chat logs
+        $allLogs = $bot->chatLogs()->get();
+
+        // Group by session
+        $sessions = $allLogs->groupBy('session_id');
+
+        $unreadCount = 0;
+        $unreadSessions = [];
+
+        foreach ($sessions as $sessionId => $logs) {
+            $hasUserMessage = $logs->contains('role', 'user');
+            $hasRecentAdminReply = $logs->where('role', 'admin')
+                ->where('created_at', '>=', now()->subMinutes($timeoutMins))
+                ->isNotEmpty();
+
+            if ($hasUserMessage && !$hasRecentAdminReply) {
+                $unreadCount++;
+                $unreadSessions[] = $sessionId;
+            }
+        }
 
         return response()->json([
-            'count' => $unreadSessions->count(),
-            'sessions' => $unreadSessions->pluck('session_id')
+            'count' => $unreadCount,
+            'sessions' => $unreadSessions
         ]);
     }
 

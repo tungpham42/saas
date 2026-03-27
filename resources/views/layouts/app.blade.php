@@ -281,6 +281,88 @@
         .dark .table-warm tr:hover td {
             background: #2d2d44;
         }
+
+        @keyframes pulse-session {
+            0% {
+                background-color: rgba(245, 158, 11, 0);
+                border-left-color: rgba(245, 158, 11, 0);
+            }
+            50% {
+                background-color: rgba(245, 158, 11, 0.1);
+                border-left-color: rgba(245, 158, 11, 0.5);
+            }
+            100% {
+                background-color: rgba(245, 158, 11, 0);
+                border-left-color: rgba(245, 158, 11, 0);
+            }
+        }
+
+        .animate-pulse-session {
+            animation: pulse-session 2s ease-out;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        /* Optional: Add a notification badge */
+        .new-session-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #f59e0b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        /* Loading indicator for infinite scroll */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 50%;
+            border-top-color: #f59e0b;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .sessions-loading {
+            text-align: center;
+            padding: 20px;
+            color: #f59e0b;
+        }
+
+        /* Sentinels for infinite scroll */
+        #sessions-sentinel {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Loading more indicator */
+        .loading-more {
+            text-align: center;
+            padding: 12px;
+            color: #f59e0b;
+            font-size: 12px;
+        }
     </style>
 
     @stack('styles')

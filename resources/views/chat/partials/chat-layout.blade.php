@@ -25,10 +25,22 @@
             <!-- Sidebar with sessions -->
             <div class="w-full lg:w-80 border-r border-amber-100 dark:border-gray-700 flex flex-col bg-amber-50/30 dark:bg-gray-800/30">
                 <div class="p-4 border-b border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800">
-                    <h3 class="font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
-                        <i class="fas fa-comments text-amber-500"></i>
-                        <span>{{ $isLive ? '💬 Live Chats' : '📜 Chat History' }}</span>
-                    </h3>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                            <i class="fas fa-comments text-amber-500"></i>
+                            <span>{{ $isLive ? '💬 Live Chats' : '📜 Chat History' }}</span>
+                        </h3>
+
+                        @if($isLive)
+                        <button @click="toggleAutoJump()"
+                                :class="autoJumpEnabled ? 'text-green-500' : 'text-gray-400'"
+                                class="text-sm transition"
+                                title="Auto-jump to new conversations">
+                            <i class="fas fa-arrow-right-to-bracket"></i>
+                            <span class="ml-1 text-xs">Auto</span>
+                        </button>
+                        @endif
+                    </div>
 
                     @if(!$isLive)
                     <form action="{{ route('bots.clear-all-chats', $bot) }}" method="POST" class="mt-3" @submit.prevent="clearAllChats">
@@ -62,54 +74,38 @@
 
                 <div class="flex-1 overflow-y-auto p-2 space-y-1" id="sessions-list">
                     @forelse($sessions as $session)
-                    <?php
-                        $isActive = $selectedSession === $session->session_id;
-                        $sessionInfo = parseSessionId($session->session_id, $bot);
-                        $lastTime = \Carbon\Carbon::parse($session->last_time);
-                    ?>
-                    <a href="#"
-                       data-session-id="{{ $session->session_id }}"
-                       @click.prevent="selectSession('{{ $session->session_id }}')"
-                       class="session-item block p-3 rounded-xl transition-all {{ $isActive ? 'gradient-warm text-amber-900 shadow-md' : 'hover:bg-amber-50 dark:hover:bg-gray-800' }}">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-lg">{{ $sessionInfo['icon'] ?? '💬' }}</span>
-                                    <span class="font-mono text-xs truncate {{ $isActive ? 'text-amber-900' : 'text-amber-600 dark:text-amber-400' }}">
-                                        {{ substr($session->session_id, 0, 20) }}...
-                                    </span>
-                                </div>
-                                @if(isset($sessionInfo['channel_name']))
-                                <p class="text-xs {{ $isActive ? 'text-amber-800/70' : 'text-amber-400' }} mt-1">
-                                    <i class="fas fa-link mr-1"></i>{{ $sessionInfo['channel_name'] }}
-                                </p>
-                                @endif
-                                <div class="flex items-center gap-3 mt-2 text-xs {{ $isActive ? 'text-amber-800/70' : 'text-amber-400' }}">
-                                    <span class="session-last-time" data-session-time="{{ $session->session_id }}">
-                                        <i class="far fa-clock mr-1"></i>{{ $lastTime->format('M d, H:i') }}
-                                    </span>
-                                    <span class="session-msg-count" data-session-count="{{ $session->session_id }}">
-                                        <i class="fas fa-comment mr-1"></i>{{ $session->msgs }} msgs
-                                    </span>
-                                </div>
-                            </div>
-                            @if($isLive && !hasRecentAdminReply($bot, $session->session_id))
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
-                            @endif
-                        </div>
-                    </a>
+                        @php
+                            $isActive = $selectedSession === $session->session_id;
+                            $sessionInfo = parseSessionId($session->session_id, $bot);
+                        @endphp
+                        @include('chat.partials.session-item', [
+                            'session' => $session,
+                            'sessionInfo' => $sessionInfo,
+                            'isActive' => $isActive,
+                            'bot' => $bot,
+                            'isLive' => $isLive
+                        ])
                     @empty
                     <div class="p-8 text-center text-amber-400">
                         <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
                         <p>No conversations yet</p>
                     </div>
                     @endforelse
+
+                    <!-- Loading indicator for infinite scroll -->
+                    <div id="sessions-loading" class="text-center p-4 hidden">
+                        <div class="loading-spinner mx-auto"></div>
+                        <p class="text-xs text-amber-500 mt-2">Loading more...</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Chat messages area -->
             <div class="flex-1 flex flex-col bg-white dark:bg-gray-800">
                 @if($selectedSession)
+                    @php
+                        $sessionInfo = parseSessionId($selectedSession, $bot);
+                    @endphp
                     <div class="p-4 border-b border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-wrap justify-between items-center gap-3 sticky top-0 z-10">
                         <div class="flex items-center gap-2">
                             <div class="gradient-warm rounded-full w-8 h-8 flex items-center justify-center">
@@ -117,7 +113,7 @@
                             </div>
                             <div>
                                 <span class="font-mono text-sm text-amber-700 dark:text-amber-300">{{ substr($selectedSession, 0, 25) }}...</span>
-                                @if(isset($sessionInfo) && isset($sessionInfo['channel_name']))
+                                @if(isset($sessionInfo['channel_name']))
                                     <span class="ml-2 px-2 py-0.5 bg-amber-50 dark:bg-gray-700 rounded-full text-xs text-amber-600">{{ $sessionInfo['channel_name'] }}</span>
                                 @endif
                             </div>
@@ -139,6 +135,11 @@
                     </div>
 
                     <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-amber-50/30 to-white dark:from-gray-900 dark:to-gray-800">
+                        <div id="messages-loading" class="text-center p-4 hidden">
+                            <div class="loading-spinner mx-auto"></div>
+                            <p class="text-xs text-amber-500 mt-2">Loading older messages...</p>
+                        </div>
+
                         @if($messages && count($messages) > 0)
                             @foreach($messages as $msg)
                                 @include('chat.partials.message-bubble', ['message' => $msg])
@@ -186,6 +187,21 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+<style>
+.loading-spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(245, 158, 11, 0.3);
+    border-radius: 50%;
+    border-top-color: #f59e0b;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
 <script>
 function parseMarkdown(text) {
     if (typeof marked !== 'undefined') {
@@ -207,13 +223,183 @@ function chatManager() {
         currentBotId: {{ $bot->id }},
         isLive: {{ $isLive ? 'true' : 'false' }},
         currentSessions: [],
+        knownSessionIds: new Set(),
+        autoJumpEnabled: true,
+
+        // Pagination properties
+        sessionsPage: 1,
+        sessionsPerPage: {{ $isLive ? 20 : 50 }},
+        sessionsTotal: {{ $sessions->total() ?? 0 }},
+        sessionsLastPage: {{ $sessions->lastPage() ?? 1 }},
+        loadingMoreSessions: false,
+        hasMoreSessions: {{ ($sessions->currentPage() ?? 1) < ($sessions->lastPage() ?? 1) ? 'true' : 'false' }},
+
+        messagesPage: 1,
+        messagesPerPage: 50,
+        hasMoreMessages: false,
+        loadingOlderMessages: false,
 
         init() {
             if (this.selectedSessionId) {
                 this.startPolling();
+                this.checkForMoreMessages();
             }
             this.scrollToBottom();
             this.loadSessionsList();
+            this.updateKnownSessions();
+            this.setupAutoScroll();
+            this.setupInfiniteScroll();
+            this.setupMessageScrollPagination();
+        },
+
+        checkForMoreMessages() {
+            // Check if there are more messages to load
+            const totalMessages = {{ $messages ? $messages->count() : 0 }};
+            this.hasMoreMessages = totalMessages >= this.messagesPerPage;
+            this.messagesPage = 1;
+        },
+
+        setupInfiniteScroll() {
+            const sessionsList = document.getElementById('sessions-list');
+            if (!sessionsList) return;
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && this.hasMoreSessions && !this.loadingMoreSessions) {
+                        this.loadMoreSessions();
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            const sentinel = document.createElement('div');
+            sentinel.id = 'sessions-sentinel';
+            sentinel.className = 'h-1';
+            sessionsList.appendChild(sentinel);
+            observer.observe(sentinel);
+
+            this.sessionsSentinel = sentinel;
+            this.sessionsObserver = observer;
+        },
+
+        async loadMoreSessions() {
+            if (this.loadingMoreSessions || !this.hasMoreSessions) return;
+
+            this.loadingMoreSessions = true;
+            document.getElementById('sessions-loading')?.classList.remove('hidden');
+            const nextPage = this.sessionsPage + 1;
+
+            try {
+                const url = `{{ route('bots.load-more-sessions', $bot) }}?date_preset=${encodeURIComponent(this.datePreset || '')}&filter_date=${encodeURIComponent(this.filterDate || '')}&page=${nextPage}&per_page=${this.sessionsPerPage}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.sessions && data.sessions.length > 0) {
+                    const container = document.getElementById('sessions-list');
+                    const sentinel = document.getElementById('sessions-sentinel');
+
+                    data.sessions.forEach(session => {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = session.html;
+                        const sessionElement = tempDiv.firstElementChild;
+
+                        sessionElement.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            this.selectSession(session.session_id);
+                        });
+
+                        container.insertBefore(sessionElement, sentinel);
+                    });
+
+                    this.sessionsPage = data.current_page;
+                    this.hasMoreSessions = data.has_more;
+
+                    this.currentSessions = [...this.currentSessions, ...data.sessions];
+                    this.updateKnownSessions();
+                }
+            } catch (error) {
+                console.error('Load more sessions error:', error);
+            } finally {
+                this.loadingMoreSessions = false;
+                document.getElementById('sessions-loading')?.classList.add('hidden');
+            }
+        },
+
+        setupMessageScrollPagination() {
+            const messagesContainer = document.getElementById('chat-messages');
+            if (!messagesContainer) return;
+
+            messagesContainer.addEventListener('scroll', () => {
+                if (messagesContainer.scrollTop === 0 && this.hasMoreMessages && !this.loadingOlderMessages && this.selectedSessionId) {
+                    this.loadOlderMessages();
+                }
+            });
+        },
+
+        async loadOlderMessages() {
+            if (this.loadingOlderMessages || !this.hasMoreMessages) return;
+
+            this.loadingOlderMessages = true;
+            const loadingEl = document.getElementById('messages-loading');
+            if (loadingEl) loadingEl.classList.remove('hidden');
+
+            const nextPage = this.messagesPage + 1;
+
+            try {
+                const url = `{{ route('bots.load-more-messages', $bot) }}?session_id=${encodeURIComponent(this.selectedSessionId)}&page=${nextPage}&per_page=${this.messagesPerPage}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data && data.messages && data.messages.length > 0) {
+                    const container = document.getElementById('chat-messages');
+                    const scrollHeight = container.scrollHeight;
+                    const scrollTop = container.scrollTop;
+
+                    // Prepend older messages (reverse to maintain order)
+                    [...data.messages].reverse().forEach(message => {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = message.html;
+                        container.prepend(tempDiv.firstElementChild);
+                    });
+
+                    // Adjust scroll position
+                    const newScrollHeight = container.scrollHeight;
+                    container.scrollTop = scrollTop + (newScrollHeight - scrollHeight);
+
+                    this.messagesPage = data.current_page;
+                    this.hasMoreMessages = data.has_more;
+                } else {
+                    this.hasMoreMessages = false;
+                }
+            } catch (error) {
+                console.error('Load older messages error:', error);
+            } finally {
+                this.loadingOlderMessages = false;
+                const loadingEl = document.getElementById('messages-loading');
+                if (loadingEl) loadingEl.classList.add('hidden');
+            }
+        },
+
+        updateKnownSessions() {
+            if (this.currentSessions && this.currentSessions.length > 0) {
+                this.currentSessions.forEach(session => {
+                    this.knownSessionIds.add(session.session_id);
+                });
+            }
+        },
+
+        setupAutoScroll() {
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList' && mutation.target.id === 'chat-messages') {
+                        this.scrollToBottom();
+                    }
+                });
+            });
+
+            const messagesContainer = document.getElementById('chat-messages');
+            if (messagesContainer) {
+                observer.observe(messagesContainer, { childList: true, subtree: true });
+            }
         },
 
         startPolling() {
@@ -242,8 +428,16 @@ function chatManager() {
                 const data = await response.json();
 
                 if (data.sessions && data.sessions.length > 0) {
+                    const newSessions = this.detectNewSessions(data.sessions);
                     this.currentSessions = data.sessions;
                     this.renderSessionsList(data.sessions);
+
+                    if (this.isLive && this.autoJumpEnabled && newSessions.length > 0) {
+                        const latestSession = data.sessions[0];
+                        this.jumpToSession(latestSession.session_id);
+                    }
+
+                    this.updateKnownSessions();
                 } else {
                     this.renderEmptySessions();
                 }
@@ -252,65 +446,39 @@ function chatManager() {
             }
         },
 
+        detectNewSessions(newSessions) {
+            const newOnes = [];
+            newSessions.forEach(session => {
+                if (!this.knownSessionIds.has(session.session_id)) {
+                    newOnes.push(session);
+                }
+            });
+            return newOnes;
+        },
+
         renderSessionsList(sessions) {
             const container = document.getElementById('sessions-list');
             if (!container) return;
 
-            let html = '';
-            sessions.forEach(session => {
-                const isActive = this.selectedSessionId === session.session_id;
-                const lastTime = new Date(session.last_time);
-                const formattedTime = lastTime.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-                html += `
-                    <a href="#"
-                       data-session-id="${this.escapeHtml(session.session_id)}"
-                       class="session-item block p-3 rounded-xl transition-all ${isActive ? 'gradient-warm text-amber-900 shadow-md' : 'hover:bg-amber-50 dark:hover:bg-gray-800'}">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-lg">${this.escapeHtml(session.icon)}</span>
-                                    <span class="font-mono text-xs truncate ${isActive ? 'text-amber-900' : 'text-amber-600 dark:text-amber-400'}">
-                                        ${this.escapeHtml(session.session_id.substring(0, 20))}...
-                                    </span>
-                                </div>
-                                ${session.channel_name ? `
-                                <p class="text-xs ${isActive ? 'text-amber-800/70' : 'text-amber-400'} mt-1">
-                                    <i class="fas fa-link mr-1"></i>${this.escapeHtml(session.channel_name)}
-                                </p>
-                                ` : ''}
-                                <div class="flex items-center gap-3 mt-2 text-xs ${isActive ? 'text-amber-800/70' : 'text-amber-400'}">
-                                    <span>
-                                        <i class="far fa-clock mr-1"></i>${formattedTime}
-                                    </span>
-                                    <span>
-                                        <i class="fas fa-comment mr-1"></i>${session.msgs} msgs
-                                    </span>
-                                </div>
-                            </div>
-                            ${this.isLive && !session.has_recent_admin ? `
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
-                            ` : ''}
-                        </div>
-                    </a>
-                `;
-            });
-
-            container.innerHTML = html;
-
-            // Re-attach event listeners
-            container.querySelectorAll('[data-session-id]').forEach(link => {
-                const sessionId = link.dataset.sessionId;
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.selectSession(sessionId);
+            // Only update the first page items, keep loaded items
+            const existingItems = container.querySelectorAll('.session-item');
+            if (existingItems.length > 0 && sessions.length > 0) {
+                // Update only the existing items' data (like msg count, last time)
+                sessions.slice(0, existingItems.length).forEach((session, index) => {
+                    const item = existingItems[index];
+                    if (item) {
+                        const timeSpan = item.querySelector('.session-last-time span:first-child');
+                        const countSpan = item.querySelector('.session-msg-count span:first-child');
+                        if (timeSpan) timeSpan.textContent = new Date(session.last_time).toLocaleString();
+                        if (countSpan) countSpan.textContent = session.msgs;
+                    }
                 });
-            });
+            }
         },
 
         renderEmptySessions() {
             const container = document.getElementById('sessions-list');
-            if (container) {
+            if (container && !container.querySelector('.session-item')) {
                 container.innerHTML = `
                     <div class="p-8 text-center text-amber-400">
                         <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
@@ -318,6 +486,39 @@ function chatManager() {
                     </div>
                 `;
             }
+        },
+
+        async jumpToSession(sessionId) {
+            if (sessionId === this.selectedSessionId) return;
+            this.showNewSessionNotification(sessionId);
+            this.selectSession(sessionId);
+        },
+
+        showNewSessionNotification(sessionId) {
+            Swal.fire({
+                icon: 'info',
+                title: 'New Conversation Started! 💬',
+                text: 'Auto-jumping to the latest chat',
+                toast: true,
+                timer: 3000,
+                showConfirmButton: false,
+                position: 'top-end',
+                background: '#fef3c7',
+                iconColor: '#f59e0b'
+            });
+        },
+
+        toggleAutoJump() {
+            this.autoJumpEnabled = !this.autoJumpEnabled;
+            Swal.fire({
+                icon: 'success',
+                title: this.autoJumpEnabled ? 'Auto-jump Enabled' : 'Auto-jump Disabled',
+                text: this.autoJumpEnabled ? 'Will jump to new conversations automatically' : 'Will stay on current conversation',
+                toast: true,
+                timer: 2000,
+                showConfirmButton: false,
+                position: 'top-end'
+            });
         },
 
         async pollMessages() {
@@ -364,16 +565,13 @@ function chatManager() {
         updateSessionSidebar(session) {
             if (!session || session.session_id !== this.selectedSessionId) return;
 
-            const sessionIndex = this.currentSessions.findIndex(s => s.session_id === session.session_id);
-            if (sessionIndex !== -1) {
-                this.currentSessions[sessionIndex] = {
-                    ...this.currentSessions[sessionIndex],
-                    msgs: session.msgs,
-                    last_time: session.last_time
-                };
+            const sessionItem = document.querySelector(`[data-session-id="${session.session_id}"]`);
+            if (sessionItem) {
+                const timeSpan = sessionItem.querySelector('.session-last-time span:first-child');
+                const countSpan = sessionItem.querySelector('.session-msg-count span:first-child');
+                if (timeSpan) timeSpan.textContent = new Date(session.last_time).toLocaleString();
+                if (countSpan) countSpan.textContent = session.msgs;
             }
-
-            this.renderSessionsList(this.currentSessions);
         },
 
         async sendReply() {
@@ -442,6 +640,8 @@ function chatManager() {
             this.stopPolling();
             this.selectedSessionId = sessionId;
             this.lastMsgId = 0;
+            this.messagesPage = 1;
+            this.hasMoreMessages = false;
 
             const url = new URL(window.location.href);
             url.searchParams.set('session_id', sessionId);
