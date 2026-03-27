@@ -497,6 +497,8 @@ function chatManager() {
             this.showNewSessionNotification(sessionId);
             this.selectSession(sessionId);
 
+            this.userManuallySelectedSession = true;
+
             // Reset manual selection flag after 5 seconds to allow future auto-jumps
             setTimeout(() => {
                 this.userManuallySelectedSession = false;
