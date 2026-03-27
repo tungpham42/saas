@@ -18,7 +18,6 @@ class ChatController extends Controller
     public function __construct(LLMService $llmService)
     {
         $this->llmService = $llmService;
-        // Middleware is applied in routes, not here
     }
 
     /**
@@ -131,10 +130,15 @@ class ChatController extends Controller
         $validated = $request->validate([
             'session_id' => 'required|string',
             'message' => 'required|string',
+            'content' => 'nullable|string',
         ]);
 
         $sessionId = $validated['session_id'];
-        $message = $validated['message'];
+        $message = $validated['message'] ?? $validated['content'] ?? '';
+
+        if (empty($message)) {
+            return response()->json(['error' => 'Message is required'], 400);
+        }
 
         // Save admin message
         $adminMsg = $bot->chatLogs()->create([
@@ -150,14 +154,45 @@ class ChatController extends Controller
         $this->sendToExternalChannel($bot, $sessionId, $message);
 
         if ($request->ajax() || $request->wantsJson()) {
+            // Load the message with formatted data
+            $adminMsg->loadMissing('bot');
+
             return response()->json([
                 'success' => true,
-                'message' => $adminMsg,
-                'message_id' => $adminMsg->id
+                'message' => [
+                    'id' => $adminMsg->id,
+                    'session_id' => $adminMsg->session_id,
+                    'role' => $adminMsg->role,
+                    'content' => $adminMsg->content,
+                    'created_at' => $adminMsg->created_at->toISOString(),
+                ],
+                'message_id' => $adminMsg->id,
+                'session_stats' => $this->getSessionStats($bot, $sessionId)
             ]);
         }
 
         return redirect()->back()->with('success', 'Reply sent successfully.');
+    }
+
+    /**
+     * Get session statistics
+     */
+    private function getSessionStats(Bot $bot, string $sessionId): array
+    {
+        $messageCount = $bot->chatLogs()
+            ->where('session_id', $sessionId)
+            ->count();
+
+        $lastMessage = $bot->chatLogs()
+            ->where('session_id', $sessionId)
+            ->latest('created_at')
+            ->first();
+
+        return [
+            'msgs' => $messageCount,
+            'last_time' => $lastMessage?->created_at?->toISOString(),
+            'session_id' => $sessionId,
+        ];
     }
 
     /**
@@ -179,7 +214,6 @@ class ChatController extends Controller
         }
 
         $stat->last_admin_time = now();
-
         $stat->save();
     }
 
@@ -362,24 +396,39 @@ class ChatController extends Controller
             return response()->json(['error' => 'Session ID required'], 400);
         }
 
-        // 1. Get new messages
+        // Get new messages with proper formatting
         $messages = $bot->chatLogs()
             ->where('session_id', $sessionId)
             ->where('id', '>', $lastId)
             ->orderBy('id', 'asc')
-            ->get();
+            ->get()
+            ->map(function($message) {
+                return [
+                    'id' => $message->id,
+                    'session_id' => $message->session_id,
+                    'role' => $message->role,
+                    'content' => $message->content,
+                    'created_at' => $message->created_at->toISOString(),
+                ];
+            });
 
-        // 2. Get updated session info
+        // Get updated session info
         $session = $bot->chatLogs()
             ->selectRaw('session_id, MAX(created_at) as last_time, COUNT(*) as msgs')
             ->where('session_id', $sessionId)
             ->groupBy('session_id')
             ->first();
 
+        $lastMessageId = $messages->isNotEmpty() ? $messages->last()['id'] : $lastId;
+
         return response()->json([
             'messages' => $messages,
-            'session' => $session,
-            'last_id' => $messages->last()?->id ?? $lastId
+            'session' => $session ? [
+                'session_id' => $session->session_id,
+                'last_time' => $session->last_time ? $session->last_time->toISOString() : null,
+                'msgs' => $session->msgs,
+            ] : null,
+            'last_id' => $lastMessageId
         ]);
     }
 
@@ -402,7 +451,7 @@ class ChatController extends Controller
                 ->delete();
 
             if ($request->ajax()) {
-                return response()->json(['success' => true]);
+                return response()->json(['success' => true, 'session_id' => $sessionId]);
             }
 
             return redirect()->back()->with('success', 'Session cleared successfully.');
@@ -563,6 +612,15 @@ class ChatController extends Controller
                 'wa' => 'WhatsApp',
             ];
 
+            $icons = [
+                'fb' => '📘',
+                'zalo' => '💬',
+                'tt' => '🎵',
+                'sp' => '🛍️',
+                'zlpn' => '💚',
+                'wa' => '💚',
+            ];
+
             return [
                 'type' => $channelType,
                 'type_name' => $channelNames[$channelType] ?? ucfirst($channelType),
@@ -570,6 +628,7 @@ class ChatController extends Controller
                 'channel_name' => $channel?->channel_name,
                 'user_id' => $userId,
                 'is_external' => true,
+                'icon' => $icons[$channelType] ?? '💬',
             ];
         }
 
@@ -578,6 +637,7 @@ class ChatController extends Controller
             'type' => 'web',
             'type_name' => 'Website Chat',
             'is_external' => false,
+            'icon' => '🌐',
         ];
     }
 
