@@ -191,6 +191,21 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.3s ease-out;
+}
 </style>
 <script>
 function parseMarkdown(text) {
@@ -227,6 +242,11 @@ function chatManager() {
         messagesPerPage: 50,
         hasMoreMessages: false,
         loadingOlderMessages: false,
+
+        // Auto-jump properties
+        autoJumpTimeout: null,
+        isAutoJumping: false,
+        lastUserInteraction: null,
 
         init() {
             if (this.selectedSessionId) {
@@ -420,11 +440,20 @@ function chatManager() {
                     this.currentSessions = data.sessions;
                     this.renderSessionsList(data.sessions);
 
-                    // Auto-jump to new session if in live mode
-                    // if (this.isLive && newSessions.length > 0) {
-                    //     const latestSession = data.sessions[0];
-                    //     this.jumpToSession(latestSession.session_id);
-                    // }
+                    // Auto-jump to new session only in live mode and not currently auto-jumping
+                    if (this.isLive && newSessions.length > 0 && !this.isAutoJumping && !this.userInteractedRecently()) {
+                        const latestSession = data.sessions[0];
+
+                        // Only auto-jump if we're not currently viewing a manually selected older session
+                        const shouldAutoJump = await this.shouldAutoJumpToNewSession(latestSession.session_id);
+
+                        if (shouldAutoJump) {
+                            await this.jumpToSession(latestSession.session_id);
+                        } else {
+                            // Just update the sidebar with new session indicator
+                            this.markNewSessionInSidebar(latestSession.session_id);
+                        }
+                    }
 
                     this.updateKnownSessions();
                 } else {
@@ -477,13 +506,121 @@ function chatManager() {
             }
         },
 
+        userInteractedRecently() {
+            // Check if user has manually interacted with sessions in the last 5 seconds
+            const now = Date.now();
+            if (this.lastUserInteraction && (now - this.lastUserInteraction) < 5000) {
+                return true;
+            }
+            return false;
+        },
+
+        async shouldAutoJumpToNewSession(newSessionId) {
+            // Don't auto-jump if currently viewing a session that's not the latest
+            if (this.selectedSessionId && this.selectedSessionId !== newSessionId) {
+                // Check if the current session has recent activity (last 30 seconds)
+                const currentSession = this.currentSessions.find(s => s.session_id === this.selectedSessionId);
+                if (currentSession && currentSession.last_time) {
+                    const lastActivity = new Date(currentSession.last_time).getTime();
+                    const now = Date.now();
+                    const timeSinceLastActivity = now - lastActivity;
+
+                    // If current session had activity in last 30 seconds, don't auto-jump
+                    if (timeSinceLastActivity < 30000) {
+                        return false;
+                    }
+                }
+
+                // Show a subtle notification about new session without auto-jumping
+                this.showNewSessionAvailableNotification(newSessionId);
+                return false;
+            }
+
+            return true;
+        },
+
+        showNewSessionAvailableNotification(newSessionId) {
+            // Show a non-intrusive notification that a new session is available
+            const notification = document.createElement('div');
+            notification.className = 'fixed bottom-4 right-4 bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in-up cursor-pointer';
+            notification.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>New conversation started!</span>
+                    <button class="ml-2 text-white hover:text-amber-200" onclick="this.parentElement.parentElement.remove()">✕</button>
+                </div>
+            `;
+
+            notification.addEventListener('click', async () => {
+                notification.remove();
+                await this.jumpToSession(newSessionId);
+            });
+
+            document.body.appendChild(notification);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        },
+
+        markNewSessionInSidebar(sessionId) {
+            // Add a visual indicator for new sessions in the sidebar
+            const sessionElement = document.querySelector(`[data-session-id="${sessionId}"]`);
+            if (sessionElement) {
+                const badge = document.createElement('span');
+                badge.className = 'ml-2 px-1.5 py-0.5 bg-amber-500 text-white text-xs rounded-full animate-pulse';
+                badge.textContent = 'NEW';
+
+                // Remove existing new badge if any
+                const existingBadge = sessionElement.querySelector('.new-session-badge');
+                if (existingBadge) existingBadge.remove();
+
+                badge.classList.add('new-session-badge');
+                const container = sessionElement.querySelector('.flex.items-center.justify-between');
+                if (container) {
+                    container.appendChild(badge);
+                }
+
+                // Remove badge after 10 seconds or when clicked
+                setTimeout(() => {
+                    if (badge.parentElement) {
+                        badge.remove();
+                    }
+                }, 10000);
+            }
+        },
+
         async jumpToSession(sessionId) {
             if (sessionId === this.selectedSessionId) return;
-            this.showNewSessionNotification(sessionId);
-            this.selectSession(sessionId);
+
+            // If auto-jumping to a new session, show notification and update
+            if (this.isAutoJumping) {
+                this.showNewSessionNotification(sessionId);
+            }
+
+            // Clear any auto-jump timeout if it exists
+            if (this.autoJumpTimeout) {
+                clearTimeout(this.autoJumpTimeout);
+                this.autoJumpTimeout = null;
+            }
+
+            // Set a flag to indicate this was an auto-jump
+            this.isAutoJumping = true;
+
+            // Perform the session switch
+            await this.selectSession(sessionId);
+
+            // Reset the auto-jump flag after a short delay
+            setTimeout(() => {
+                this.isAutoJumping = false;
+            }, 500);
         },
 
         showNewSessionNotification(sessionId) {
+            // Only show notification for auto-jumps to new sessions
             Swal.fire({
                 icon: 'info',
                 title: 'New Conversation Started! 💬',
@@ -493,7 +630,12 @@ function chatManager() {
                 showConfirmButton: false,
                 position: 'top-end',
                 background: '#fef3c7',
-                iconColor: '#f59e0b'
+                iconColor: '#f59e0b',
+                didOpen: (toast) => {
+                    toast.addEventListener('click', () => {
+                        Swal.close();
+                    });
+                }
             });
         },
 
@@ -612,6 +754,13 @@ function chatManager() {
 
         async selectSession(sessionId) {
             if (sessionId === this.selectedSessionId) return;
+
+            // Record user interaction
+            this.lastUserInteraction = Date.now();
+
+            // Remove any new session badges when selecting
+            const newBadges = document.querySelectorAll('.new-session-badge');
+            newBadges.forEach(badge => badge.remove());
 
             this.stopPolling();
             this.selectedSessionId = sessionId;
