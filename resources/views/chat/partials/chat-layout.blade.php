@@ -427,9 +427,9 @@ function chatManager() {
                         const latestSession = data.sessions[0];
 
                         // Only auto-jump if the user hasn't manually selected a different session
-                        if (!this.userManuallySelectedSession) {
-                            this.jumpToSession(latestSession.session_id);
-                        }
+                        // if (!this.userManuallySelectedSession) {
+                        //     this.jumpToSession(latestSession.session_id);
+                        // }
                     }
 
                     this.updateKnownSessions();
@@ -496,8 +496,6 @@ function chatManager() {
             if (sessionId === this.selectedSessionId) return;
             this.showNewSessionNotification(sessionId);
             this.selectSession(sessionId);
-
-            this.userManuallySelectedSession = true;
 
             // Reset manual selection flag after 5 seconds to allow future auto-jumps
             setTimeout(() => {
