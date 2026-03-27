@@ -1,3 +1,5 @@
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 (function() {
     const API_KEY = '{{ $apiKey }}';
     const API_URL = '{{ url('/') }}';
@@ -370,13 +372,21 @@
         }
     }
 
+    function parseMarkdown(text) {
+        if (typeof marked !== 'undefined') {
+            const raw = marked.parse(text);
+            return DOMPurify.sanitize(raw);
+        }
+        return escapeHtml(text);
+    }
+
     // Add message to chat
     function addMessageToChat(text, isUser) {
         if (!messagesContainer) return;
 
         const messageDiv = document.createElement('div');
         messageDiv.className = `ai-chat-message ${isUser ? 'user' : 'bot'}`;
-        messageDiv.innerHTML = `<div class="ai-chat-bubble">${escapeHtml(text)}</div>`;
+        messageDiv.innerHTML = `<div class="ai-chat-bubble">${parseMarkdown(text)}</div>`;
         messagesContainer.appendChild(messageDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }

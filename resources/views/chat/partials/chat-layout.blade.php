@@ -161,7 +161,16 @@
 </div>
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 <script>
+function parseMarkdown(text) {
+    if (typeof marked !== 'undefined') {
+        const raw = marked.parse(text);
+        return DOMPurify.sanitize(raw);
+    }
+    return escapeHtml(text);
+}
 function chatManager() {
     return {
         // [FIX] Ensure we reliably obtain the absolute highest numeric ID to prevent repeating loads, regardless of sort order
@@ -297,7 +306,7 @@ function chatManager() {
                             <span>•</span>
                             <span>${time}</span>
                         </div>
-                        <div class="text-sm whitespace-pre-wrap break-words leading-relaxed">${this.formatMessage(message.content)}</div>
+                        <div class="text-sm whitespace-pre-wrap break-words leading-relaxed">$${parseMarkdown(message.content)}</div>
                     </div>
                 </div>
             `;
