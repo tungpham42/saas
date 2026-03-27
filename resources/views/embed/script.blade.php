@@ -277,6 +277,10 @@
         .ai-chat-prechat {
             padding: 24px;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 100%;
         }
 
         .ai-chat-prechat h4 {
@@ -284,6 +288,7 @@
             color: ${settings.textColor};
             font-size: 16px;
             line-height: 1.5;
+            font-weight: 500;
         }
 
         .ai-chat-prechat input {
@@ -294,10 +299,12 @@
             border-radius: 12px;
             font-size: 14px;
             outline: none;
+            box-sizing: border-box;
         }
 
         .ai-chat-prechat input:focus {
             border-color: ${settings.color};
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
         }
 
         .ai-chat-prechat button {
@@ -310,6 +317,11 @@
             cursor: pointer;
             font-weight: 500;
             margin-top: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .ai-chat-prechat button:hover {
+            opacity: 0.9;
         }
 
         .ai-chat-error {
@@ -377,6 +389,10 @@
                 ${settings.position.left !== 'auto' ? `left: 0;` : `right: 0;`}
                 border-radius: 0;
             }
+
+            .ai-chat-prechat {
+                padding: 20px;
+            }
         }
     `;
 
@@ -385,12 +401,14 @@
         if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
             try {
                 // Configure marked for safe rendering
-                marked.setOptions({
-                    breaks: true,
-                    gfm: true,
-                    headerIds: false,
-                    mangle: false
-                });
+                if (marked.setOptions) {
+                    marked.setOptions({
+                        breaks: true,
+                        gfm: true,
+                        headerIds: false,
+                        mangle: false
+                    });
+                }
                 const rawHtml = marked.parse(text);
                 return DOMPurify.sanitize(rawHtml, {
                     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'code', 'pre', 'ul', 'ol', 'li', 'a', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
@@ -545,10 +563,14 @@
         }
 
         // Setup event listeners
-        inputField.removeEventListener('keypress', handleKeyPress);
-        inputField.addEventListener('keypress', handleKeyPress);
-        sendButton.removeEventListener('click', handleSendMessage);
-        sendButton.addEventListener('click', handleSendMessage);
+        if (inputField) {
+            inputField.removeEventListener('keypress', handleKeyPress);
+            inputField.addEventListener('keypress', handleKeyPress);
+        }
+        if (sendButton) {
+            sendButton.removeEventListener('click', handleSendMessage);
+            sendButton.addEventListener('click', handleSendMessage);
+        }
 
         // Start polling
         if (pollInterval) clearInterval(pollInterval);
@@ -559,19 +581,25 @@
         if (e.key === 'Enter') handleSendMessage();
     }
 
-    // Show pre-chat form
+    // Show pre-chat form with custom message
     function showPreChatForm() {
         if (!chatWindow) return;
 
         messagesContainer = chatWindow.querySelector('.ai-chat-messages');
         messagesContainer.innerHTML = '';
 
+        // Create pre-chat form with the custom message
         const preChatDiv = document.createElement('div');
         preChatDiv.className = 'ai-chat-prechat';
+
+        // Use the preChatMsg from settings (this is ui_pre_chat_msg from database)
+        const preChatMessage = settings.preChatMsg || 'Please enter your information to start support:';
+
         preChatDiv.innerHTML = `
+            <h4>${escapeHtml(preChatMessage)}</h4>
             <div id="ai-prechat-error" class="ai-chat-error">${escapeHtml(settings.preChatErrorMsg)}</div>
-            <input type="text" id="ai-prechat-name" placeholder="${escapeHtml(settings.preChatNameLabel)}" />
-            <input type="tel" id="ai-prechat-phone" placeholder="${escapeHtml(settings.preChatPhoneLabel)}" />
+            <input type="text" id="ai-prechat-name" placeholder="${escapeHtml(settings.preChatNameLabel)}" autocomplete="name" />
+            <input type="tel" id="ai-prechat-phone" placeholder="${escapeHtml(settings.preChatPhoneLabel)}" autocomplete="tel" />
             <button id="ai-prechat-submit">${escapeHtml(settings.preChatBtnText)}</button>
         `;
 
@@ -584,12 +612,16 @@
 
         errorDiv.style.display = 'none';
 
-        submitBtn.addEventListener('click', async () => {
+        // Auto-focus on name input
+        nameInput.focus();
+
+        const handleSubmit = async () => {
             const name = nameInput.value.trim();
             const phone = phoneInput.value.trim();
 
             if (!name || !phone) {
                 errorDiv.style.display = 'block';
+                errorDiv.textContent = settings.preChatErrorMsg || 'Please fill in all required information.';
                 return;
             }
 
@@ -614,22 +646,32 @@
                 console.error('Error saving lead:', error);
             }
 
+            // Clear pre-chat form and start chat
             messagesContainer.innerHTML = '';
             addMessageToChat(settings.welcomeMsg, false);
             await initChat();
-        });
+        };
+
+        submitBtn.addEventListener('click', handleSubmit);
 
         nameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') submitBtn.click();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                phoneInput.focus();
+            }
         });
 
         phoneInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') submitBtn.click();
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSubmit();
+            }
         });
     }
 
     // Escape HTML to prevent XSS
     function escapeHtml(text) {
+        if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
