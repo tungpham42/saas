@@ -34,8 +34,8 @@
                         <div class="flex items-center gap-2">
                             <span x-show="newSessionsCount > 0" x-text="newSessionsCount"
                                   class="bg-red-500 text-white text-xs rounded-full px-2 py-1 animate-pulse"></span>
-                            <span x-show="autoRefreshEnabled" class="text-xs text-green-500">
-                                <i class="fas fa-sync-alt fa-fw animate-spin"></i> Live
+                            <span class="text-xs text-green-500">
+                                <i class="fas fa-circle text-[8px] animate-pulse"></i> Live
                             </span>
                         </div>
                         @endif
@@ -72,112 +72,139 @@
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-2 space-y-1" id="sessions-list">
-                    @forelse($sessions as $session)
-                        @php
-                            $isActive = $selectedSession === $session->session_id;
-                            $sessionInfo = parseSessionId($session->session_id, $bot);
-                        @endphp
-                        @include('chat.partials.session-item', [
-                            'session' => $session,
-                            'sessionInfo' => $sessionInfo,
-                            'isActive' => $isActive,
-                            'bot' => $bot,
-                            'isLive' => $isLive
-                        ])
-                    @empty
-                    <div class="p-8 text-center text-amber-400">
+                    <template x-for="session in displayedSessions" :key="session.session_id">
+                        <div
+                            :data-session-id="session.session_id"
+                            :class="{
+                                'bg-amber-100 dark:bg-gray-700 ring-2 ring-amber-400': session.session_id === selectedSessionId,
+                                'session-item-highlight': session.highlighted,
+                                'session-item-new-message': session.newMessage
+                            }"
+                            @click="selectSession(session.session_id)"
+                            class="session-item group p-3 rounded-xl cursor-pointer transition-all hover:bg-amber-50 dark:hover:bg-gray-700/50 border border-transparent hover:border-amber-200 dark:hover:border-gray-600"
+                        >
+                            <div class="flex items-center gap-3">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-sm">
+                                    <span class="text-lg" x-text="session.icon || '💬'"></span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-medium text-amber-800 dark:text-amber-200 truncate" x-text="session.channel_name || (session.channel_type === 'web' ? 'Website' : 'Chat')"></p>
+                                        <span class="session-msg-count text-xs text-amber-500 dark:text-amber-400">
+                                            <span x-text="session.msgs"></span> msgs
+                                            <span x-show="session.newMessagesCount > 0"
+                                                  x-text="'+' + session.newMessagesCount"
+                                                  class="new-badge ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse"></span>
+                                        </span>
+                                    </div>
+                                    <div class="session-last-time flex items-center gap-2 text-xs text-amber-400 dark:text-amber-500 mt-0.5">
+                                        <i class="fas fa-clock text-xs"></i>
+                                        <span x-text="formatTime(session.last_time)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div x-show="displayedSessions.length === 0 && !loadingMoreSessions" class="p-8 text-center text-amber-400">
                         <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
                         <p>No conversations yet</p>
                     </div>
-                    @endforelse
 
-                    <!-- Loading indicator for infinite scroll -->
-                    <div id="sessions-loading" class="text-center p-4 hidden">
+                    <div x-show="loadingMoreSessions" class="text-center p-4">
                         <div class="loading-spinner mx-auto"></div>
                         <p class="text-xs text-amber-500 mt-2">Loading more...</p>
                     </div>
+
+                    <div id="sessions-sentinel" class="h-1"></div>
                 </div>
             </div>
 
             <!-- Chat messages area -->
             <div class="flex-1 flex flex-col bg-white dark:bg-gray-800">
-                @if($selectedSession)
-                    @php
-                        $sessionInfo = parseSessionId($selectedSession, $bot);
-                    @endphp
-                    <div class="p-4 border-b border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-wrap justify-between items-center gap-3 sticky top-0 z-10">
-                        <div class="flex items-center gap-2">
-                            <div class="gradient-warm rounded-full w-8 h-8 flex items-center justify-center">
-                                <i class="fas fa-comment-dots text-amber-900 text-xs"></i>
+                <template x-if="selectedSessionId">
+                    <div class="flex flex-col h-full">
+                        <div class="p-4 border-b border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-wrap justify-between items-center gap-3 sticky top-0 z-10">
+                            <div class="flex items-center gap-2">
+                                <div class="gradient-warm rounded-full w-8 h-8 flex items-center justify-center">
+                                    <i class="fas fa-comment-dots text-amber-900 text-xs"></i>
+                                </div>
+                                <div>
+                                    <span class="font-mono text-sm text-amber-700 dark:text-amber-300" x-text="selectedSessionId.substring(0, 25) + '...'"></span>
+                                    <span x-show="selectedSessionInfo?.channel_name"
+                                          x-text="selectedSessionInfo.channel_name"
+                                          class="ml-2 px-2 py-0.5 bg-amber-50 dark:bg-gray-700 rounded-full text-xs text-amber-600"></span>
+                                </div>
                             </div>
-                            <div>
-                                <span class="font-mono text-sm text-amber-700 dark:text-amber-300">{{ substr($selectedSession, 0, 25) }}...</span>
-                                @if(isset($sessionInfo['channel_name']))
-                                    <span class="ml-2 px-2 py-0.5 bg-amber-50 dark:bg-gray-700 rounded-full text-xs text-amber-600">{{ $sessionInfo['channel_name'] }}</span>
+                            <div class="flex gap-2">
+                                <a :href="`{{ route('bots.export-session', $bot) }}?session_id=${encodeURIComponent(selectedSessionId)}`"
+                                   class="px-3 py-1.5 text-sm bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 dark:hover:bg-gray-600 rounded-xl transition flex items-center gap-1 text-amber-600">
+                                    <i class="fas fa-download"></i>
+                                    <span>Save</span>
+                                </a>
+                                @if(!$isLive)
+                                <button @click="clearSession(selectedSessionId)"
+                                        class="px-3 py-1.5 text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition flex items-center gap-1">
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span>Clear</span>
+                                </button>
                                 @endif
                             </div>
                         </div>
-                        <div class="flex gap-2">
-                            <a href="{{ route('bots.export-session', $bot) }}?session_id={{ urlencode($selectedSession) }}"
-                            class="px-3 py-1.5 text-sm bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 dark:hover:bg-gray-600 rounded-xl transition flex items-center gap-1 text-amber-600">
-                                <i class="fas fa-download"></i>
-                                <span>Save</span>
-                            </a>
-                            @if(!$isLive)
-                            <button @click="clearSession('{{ $selectedSession }}')"
-                                    class="px-3 py-1.5 text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition flex items-center gap-1">
-                                <i class="fas fa-trash-alt"></i>
-                                <span>Clear</span>
-                            </button>
-                            @endif
-                        </div>
-                    </div>
 
-                    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-amber-50/30 to-white dark:from-gray-900 dark:to-gray-800">
-                        <div id="messages-loading" class="text-center p-4 hidden">
-                            <div class="loading-spinner mx-auto"></div>
-                            <p class="text-xs text-amber-500 mt-2">Loading older messages...</p>
-                        </div>
+                        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-amber-50/30 to-white dark:from-gray-900 dark:to-gray-800">
+                            <div x-show="loadingOlderMessages" class="text-center p-4">
+                                <div class="loading-spinner mx-auto"></div>
+                                <p class="text-xs text-amber-500 mt-2">Loading older messages...</p>
+                            </div>
 
-                        @if($messages && count($messages) > 0)
-                            @foreach($messages as $msg)
-                                @include('chat.partials.message-bubble', ['message' => $msg])
-                            @endforeach
-                        @else
-                            <div id="empty-state" class="flex-1 flex flex-col items-center justify-center h-full opacity-80">
+                            <template x-for="msg in messages" :key="msg.id">
+                                <div :class="msg.role === 'admin' ? 'flex justify-end' : 'flex justify-start'" class="animate-gentle group">
+                                    <div :class="msg.role === 'admin' ? 'gradient-warm text-amber-900' : (msg.role === 'user' ? 'bg-white dark:bg-gray-700 border border-amber-200 dark:border-gray-600 text-amber-800 dark:text-amber-200' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300')" class="max-w-[75%] rounded-2xl p-3 shadow-sm">
+                                        <div class="flex items-center gap-2 text-xs opacity-70 mb-1">
+                                            <i :class="msg.role === 'admin' ? 'fas fa-user-tie' : (msg.role === 'user' ? 'fas fa-user' : 'fas fa-robot')"></i>
+                                            <span x-text="msg.role === 'admin' ? 'You' : (msg.role === 'user' ? 'Customer' : 'AI Assistant')"></span>
+                                            <span>•</span>
+                                            <span x-text="formatTime(msg.created_at, true)"></span>
+                                        </div>
+                                        <div class="text-sm whitespace-pre-wrap break-words leading-relaxed" x-html="parseMarkdown(msg.content)"></div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div x-show="messages.length === 0 && !loadingOlderMessages" class="flex-1 flex flex-col items-center justify-center h-full opacity-80">
                                 <div class="text-6xl mb-4">💭</div>
                                 <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">Start the Conversation</h3>
                                 <p class="text-amber-500 dark:text-amber-400 mt-2">Be the first to say hello!</p>
                             </div>
+                        </div>
+
+                        @if($isLive)
+                        <div class="p-4 border-t border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800">
+                            <form @submit.prevent="sendReply" class="flex gap-2">
+                                @csrf
+                                <div class="flex-1 relative">
+                                    <input type="text" x-model="replyMessage"
+                                        class="w-full px-4 py-3 pr-12 border border-amber-200 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-700 text-amber-800 dark:text-amber-200"
+                                        placeholder="Type a warm reply..." autocomplete="off">
+                                    <button type="submit" :disabled="!replyMessage.trim()"
+                                            class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 btn-soft rounded-xl text-sm disabled:opacity-50">
+                                        Send 💝
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                         @endif
                     </div>
+                </template>
 
-                    @if($isLive)
-                    <div class="p-4 border-t border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800">
-                        <form id="reply-form" @submit.prevent="sendReply" class="flex gap-2">
-                            @csrf
-                            <input type="hidden" name="session_id" value="{{ $selectedSession }}">
-                            <div class="flex-1 relative">
-                                <input type="text" name="message" id="reply-message" x-model="replyMessage"
-                                    class="w-full px-4 py-3 pr-12 border border-amber-200 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-700 text-amber-800 dark:text-amber-200"
-                                    placeholder="Type a warm reply..." autocomplete="off">
-                                <button type="submit" id="reply-submit-btn" :disabled="!replyMessage.trim()"
-                                        class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 btn-soft rounded-xl text-sm disabled:opacity-50">
-                                    Send 💝
-                                </button>
-                            </div>
-                        </form>
+                <div x-show="!selectedSessionId" class="flex-1 flex items-center justify-center">
+                    <div class="text-center p-8">
+                        <div class="text-6xl mb-4">🤗</div>
+                        <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">Welcome to the Chat</h3>
+                        <p class="text-amber-500 dark:text-amber-400 mt-2">Choose a conversation from the sidebar to get started</p>
                     </div>
-                    @endif
-                @else
-                    <div class="flex-1 flex items-center justify-center">
-                        <div class="text-center p-8">
-                            <div class="text-6xl mb-4">🤗</div>
-                            <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">Welcome to the Chat</h3>
-                            <p class="text-amber-500 dark:text-amber-400 mt-2">Choose a conversation from the sidebar to get started</p>
-                        </div>
-                    </div>
-                @endif
+                </div>
             </div>
         </div>
     </div>
@@ -240,28 +267,13 @@
 }
 
 /* Message counter badge */
-.session-msg-count .new-badge {
-    background-color: #ef4444;
-    color: white;
+.new-badge {
     animation: pulse 1s infinite;
-    font-size: 10px;
-    padding: 2px 6px;
 }
 
 @keyframes pulse {
     0%, 100% { transform: scale(1); opacity: 1; }
     50% { transform: scale(1.1); opacity: 0.9; }
-}
-
-/* Auto-refresh indicator */
-@keyframes fadeInOut {
-    0% { opacity: 0.3; }
-    50% { opacity: 1; }
-    100% { opacity: 0.3; }
-}
-
-.live-indicator {
-    animation: fadeInOut 1.5s ease-in-out infinite;
 }
 
 /* Sidebar item hover effect */
@@ -284,6 +296,7 @@ function parseMarkdown(text) {
 
 function chatManager() {
     return {
+        // State
         lastMsgId: {{ $messages && count($messages) > 0 ? ($messages->max('id') ?? 0) : 0 }},
         pollingInterval: null,
         sidebarInterval: null,
@@ -294,100 +307,99 @@ function chatManager() {
         selectedSessionId: '{{ $selectedSession }}',
         currentBotId: {{ $bot->id }},
         isLive: {{ $isLive ? 'true' : 'false' }},
-        currentSessions: [],
-        knownSessionIds: new Set(),
-        userManuallySelectedSession: {{ $selectedSession ? 'true' : 'false' }},
-        newSessionsCount: 0,
-        sessionMessageCounts: new Map(),
-        autoRefreshEnabled: true,
-        lastSidebarUpdate: Date.now(),
-        isComponentDestroyed: false,
 
-        // Pagination properties
+        // Session data
+        sessions: [], // Full session data array
+        displayedSessions: [], // Sessions to display (sorted)
+        sessionMessageCounts: new Map(),
+        newSessionsCount: 0,
+        userManuallySelectedSession: {{ $selectedSession ? 'true' : 'false' }},
+
+        // UI state
+        autoRefreshEnabled: true,
+        isComponentDestroyed: false,
+        loadingMoreSessions: false,
+        hasMoreSessions: true,
         sessionsPage: 1,
         sessionsPerPage: {{ $isLive ? 20 : 50 }},
-        sessionsTotal: {{ $sessions->total() ?? 0 }},
-        sessionsLastPage: {{ $sessions->lastPage() ?? 1 }},
-        loadingMoreSessions: false,
-        hasMoreSessions: {{ ($sessions->currentPage() ?? 1) < ($sessions->lastPage() ?? 1) ? 'true' : 'false' }},
 
+        // Messages
+        messages: [],
         messagesPage: 1,
         messagesPerPage: 50,
         hasMoreMessages: false,
         loadingOlderMessages: false,
 
-        init() {
-            // Initialize message counts for known sessions
-            this.initSessionMessageCounts();
+        // Computed
+        get selectedSessionInfo() {
+            return this.sessions.find(s => s.session_id === this.selectedSessionId);
+        },
 
-            // Pre-populate known sessions from existing HTML
-            document.querySelectorAll('#sessions-list [data-session-id]').forEach(el => {
-                const sessionId = el.getAttribute('data-session-id');
-                this.knownSessionIds.add(sessionId);
-                const countSpan = el.querySelector('.session-msg-count span:first-child');
-                if (countSpan) {
-                    this.sessionMessageCounts.set(sessionId, parseInt(countSpan.textContent) || 0);
-                }
+        init() {
+            // Initialize sessions from server data
+            const initialSessions = @json($sessions->map(function($session) use ($bot) {
+                $sessionInfo = parseSessionId($session->session_id, $bot);
+                return [
+                    'session_id' => $session->session_id,
+                    'last_time' => $session->last_time?->toISOString(),
+                    'msgs' => $session->msgs,
+                    'channel_name' => $sessionInfo['channel_name'] ?? null,
+                    'icon' => $sessionInfo['icon'] ?? '💬',
+                    'channel_type' => $sessionInfo['type'] ?? 'web',
+                    'highlighted' => false,
+                    'newMessage' => false,
+                    'newMessagesCount' => 0,
+                ];
+            })->toArray());
+
+            this.sessions = initialSessions;
+            this.displayedSessions = [...this.sessions];
+
+            // Initialize known session IDs and message counts
+            this.sessions.forEach(session => {
+                this.sessionMessageCounts.set(session.session_id, session.msgs);
             });
 
-            // Use event delegation for clicking sessions
-            const sessionsListContainer = document.getElementById('sessions-list');
-            if (sessionsListContainer) {
-                sessionsListContainer.addEventListener('click', (e) => {
-                    const item = e.target.closest('[data-session-id]');
-                    if (item && !e.target.closest('a')) {
-                        e.preventDefault();
-                        this.userManuallySelectedSession = true;
-                        this.newSessionsCount = 0;
-                        this.selectSession(item.getAttribute('data-session-id'));
-                    }
-                });
-            }
+            // Initialize messages
+            this.messages = @json($messages ? $messages->map(function($msg) {
+                return [
+                    'id' => $msg->id,
+                    'session_id' => $msg->session_id,
+                    'role' => $msg->role,
+                    'content' => $msg->content,
+                    'created_at' => $msg->created_at?->toISOString(),
+                ];
+            })->toArray() : []);
 
+            // Setup event listeners
             if (this.selectedSessionId) {
                 this.startPolling();
                 this.checkForMoreMessages();
             }
 
             this.scrollToBottom();
-            this.loadSessionsList();
             this.setupAutoScroll();
             this.setupInfiniteScroll();
             this.setupMessageScrollPagination();
 
-            // Start sidebar auto-refresh every 2 seconds for live chat
+            // Start auto-refresh for live chat
             if (this.isLive) {
                 this.startSidebarRefresh();
             }
 
             // Clean up on page unload
-            window.addEventListener('beforeunload', () => {
-                this.cleanup();
-            });
+            window.addEventListener('beforeunload', () => this.cleanup());
         },
 
         cleanup() {
             this.isComponentDestroyed = true;
             this.stopPolling();
             this.stopSidebarRefresh();
-
-            // Clear all intervals and timeouts
-            if (this.pollingInterval) {
-                clearInterval(this.pollingInterval);
-                this.pollingInterval = null;
-            }
-            if (this.sidebarInterval) {
-                clearInterval(this.sidebarInterval);
-                this.sidebarInterval = null;
-            }
         },
 
         startSidebarRefresh() {
-            if (this.sidebarInterval) {
-                clearInterval(this.sidebarInterval);
-            }
+            if (this.sidebarInterval) clearInterval(this.sidebarInterval);
 
-            // Refresh sidebar every 2 seconds
             this.sidebarInterval = setInterval(() => {
                 if (this.autoRefreshEnabled && !this.loadingMoreSessions && !this.isComponentDestroyed) {
                     this.refreshSidebar();
@@ -411,131 +423,142 @@ function chatManager() {
                 const data = await response.json();
 
                 if (data.sessions && data.sessions.length > 0) {
-                    const oldSessionIds = new Set(this.currentSessions.map(s => s.session_id));
-                    const newSessions = data.sessions.filter(s => !oldSessionIds.has(s.session_id));
-                    const updatedSessions = data.sessions.filter(s => {
-                        const oldSession = this.currentSessions.find(os => os.session_id === s.session_id);
-                        return oldSession && (oldSession.msgs !== s.msgs || oldSession.last_time !== s.last_time);
-                    });
-
-                    // Update current sessions
-                    this.currentSessions = data.sessions;
-
-                    // Handle new sessions
-                    if (newSessions.length > 0) {
-                        newSessions.forEach(session => {
-                            this.knownSessionIds.add(session.session_id);
-                            this.sessionMessageCounts.set(session.session_id, session.msgs);
-                            this.newSessionsCount++;
-
-                            // Auto-jump if not manually selected
-                            if (!this.userManuallySelectedSession) {
-                                this.jumpToSession(session.session_id);
-                            } else {
-                                this.highlightSessionInSidebar(session.session_id, true);
-                            }
-                        });
-
-                        this.showNotification(`${newSessions.length} new conversation${newSessions.length > 1 ? 's' : ''} started!`, 'info');
-                    }
-
-                    // Handle updated sessions (new messages)
-                    if (updatedSessions.length > 0) {
-                        updatedSessions.forEach(session => {
-                            const oldCount = this.sessionMessageCounts.get(session.session_id) || 0;
-                            if (session.msgs > oldCount) {
-                                if (session.session_id !== this.selectedSessionId) {
-                                    this.highlightSessionInSidebar(session.session_id, true);
-                                    this.showNotification(`New message in ${session.channel_name || 'conversation'}`, 'message');
-                                }
-                                this.sessionMessageCounts.set(session.session_id, session.msgs);
-                            }
-                        });
-                    }
-
-                    // Re-render sidebar with updated data
-                    if (!this.isComponentDestroyed) {
-                        this.renderSessionsList(data.sessions);
-                        this.lastSidebarUpdate = Date.now();
-                    }
+                    this.updateSessionsList(data.sessions);
                 }
             } catch (error) {
                 console.error('Refresh sidebar error:', error);
             }
         },
 
-        showNotification(message, type = 'info') {
-            // Only show toast notification for important updates
-            if (!this.userManuallySelectedSession || type === 'message') {
-                const icon = type === 'info' ? '💬' : '📨';
-                Swal.fire({
-                    icon: type === 'info' ? 'info' : 'success',
-                    title: icon + ' ' + message,
-                    toast: true,
-                    timer: 3000,
-                    showConfirmButton: false,
-                    position: 'top-end',
-                    background: '#fef3c7',
-                    iconColor: '#f59e0b'
-                });
-            }
-        },
+        updateSessionsList(newSessionsData) {
+            // Create a map of existing sessions
+            const existingSessionsMap = new Map();
+            this.sessions.forEach(s => existingSessionsMap.set(s.session_id, s));
 
-        initSessionMessageCounts() {
-            document.querySelectorAll('#sessions-list [data-session-id]').forEach(el => {
-                const sessionId = el.getAttribute('data-session-id');
-                const countSpan = el.querySelector('.session-msg-count span:first-child');
-                if (countSpan) {
-                    this.sessionMessageCounts.set(sessionId, parseInt(countSpan.textContent) || 0);
-                }
-            });
-        },
+            // Track new and updated sessions
+            let hasNewSessions = false;
+            let hasUpdates = false;
 
-        highlightSessionInSidebar(sessionId, hasNewMessages = true) {
-            const safeId = CSS.escape(sessionId);
-            const sessionItem = document.querySelector(`[data-session-id="${safeId}"]`);
-            if (sessionItem && hasNewMessages && !this.isComponentDestroyed) {
-                // Add highlight class
-                sessionItem.classList.add('session-item-highlight');
-                sessionItem.classList.add('session-item-new-message');
+            // Process each new session
+            newSessionsData.forEach(newData => {
+                const existing = existingSessionsMap.get(newData.session_id);
+                const newMsgCount = newData.msgs;
+                const oldMsgCount = existing?.msgs || 0;
 
-                // Update message count badge to show new indicator
-                const countSpan = sessionItem.querySelector('.session-msg-count');
-                if (countSpan && !countSpan.querySelector('.new-badge')) {
-                    const currentCount = this.sessionMessageCounts.get(sessionId) || 0;
-                    const newCount = this.currentSessions.find(s => s.session_id === sessionId)?.msgs || currentCount;
+                if (!existing) {
+                    // Brand new session
+                    hasNewSessions = true;
+                    this.newSessionsCount++;
 
-                    if (newCount > currentCount) {
-                        const badge = document.createElement('span');
-                        badge.className = 'new-badge ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold';
-                        badge.textContent = `+${newCount - currentCount}`;
-                        countSpan.appendChild(badge);
+                    this.sessions.unshift({
+                        session_id: newData.session_id,
+                        last_time: newData.last_time,
+                        msgs: newMsgCount,
+                        channel_name: newData.channel_name,
+                        icon: newData.icon,
+                        channel_type: newData.channel_type,
+                        highlighted: true,
+                        newMessage: true,
+                        newMessagesCount: newMsgCount,
+                    });
+
+                    this.sessionMessageCounts.set(newData.session_id, newMsgCount);
+
+                    // Auto-jump if not manually selected
+                    if (!this.userManuallySelectedSession) {
+                        this.jumpToSession(newData.session_id);
+                    }
+                } else {
+                    // Existing session - check for updates
+                    if (newMsgCount > oldMsgCount) {
+                        hasUpdates = true;
+                        const newMessages = newMsgCount - oldMsgCount;
+
+                        // Update the session in the array
+                        const index = this.sessions.findIndex(s => s.session_id === newData.session_id);
+                        if (index !== -1) {
+                            this.sessions[index] = {
+                                ...this.sessions[index],
+                                last_time: newData.last_time,
+                                msgs: newMsgCount,
+                                newMessagesCount: newMessages,
+                                highlighted: true,
+                                newMessage: true,
+                            };
+
+                            // Move to top if it's not the current session
+                            if (newData.session_id !== this.selectedSessionId && index > 0) {
+                                const [moved] = this.sessions.splice(index, 1);
+                                this.sessions.unshift(moved);
+                            }
+
+                            // Highlight if not current session
+                            if (newData.session_id !== this.selectedSessionId) {
+                                this.highlightSessionInSidebar(newData.session_id, newMessages);
+                            }
+
+                            this.sessionMessageCounts.set(newData.session_id, newMsgCount);
+                        }
                     }
                 }
+            });
 
-                // Remove highlight after animation
+            // Re-sort sessions (newest first)
+            this.sessions.sort((a, b) => new Date(b.last_time) - new Date(a.last_time));
+
+            // Update displayed sessions
+            this.displayedSessions = [...this.sessions];
+
+            // Show notifications
+            if (hasNewSessions && !this.userManuallySelectedSession) {
+                this.showNotification('New conversation started!', 'info');
+            } else if (hasUpdates && !this.userManuallySelectedSession) {
+                this.showNotification('New message received!', 'message');
+            }
+
+            // Clear highlight flags after animation
+            setTimeout(() => {
+                this.sessions.forEach(session => {
+                    session.highlighted = false;
+                    session.newMessage = false;
+                    session.newMessagesCount = 0;
+                });
+                this.displayedSessions = [...this.sessions];
+            }, 2000);
+        },
+
+        highlightSessionInSidebar(sessionId, newMessagesCount) {
+            const index = this.displayedSessions.findIndex(s => s.session_id === sessionId);
+            if (index !== -1) {
+                this.displayedSessions[index].highlighted = true;
+                this.displayedSessions[index].newMessagesCount = newMessagesCount;
+                // Reset after animation
                 setTimeout(() => {
-                    if (sessionItem && !this.isComponentDestroyed) {
-                        sessionItem.classList.remove('session-item-highlight');
-                        setTimeout(() => {
-                            if (sessionItem && !this.isComponentDestroyed) {
-                                sessionItem.classList.remove('session-item-new-message');
-                            }
-                        }, 1500);
+                    if (this.displayedSessions[index]) {
+                        this.displayedSessions[index].highlighted = false;
+                        this.displayedSessions[index].newMessagesCount = 0;
                     }
                 }, 2000);
             }
         },
 
-        checkForMoreMessages() {
-            const totalMessages = {{ $messages ? $messages->count() : 0 }};
-            this.hasMoreMessages = totalMessages >= this.messagesPerPage;
-            this.messagesPage = 1;
+        showNotification(message, type = 'info') {
+            const icon = type === 'info' ? '💬' : '📨';
+            Swal.fire({
+                icon: type === 'info' ? 'info' : 'success',
+                title: icon + ' ' + message,
+                toast: true,
+                timer: 3000,
+                showConfirmButton: false,
+                position: 'top-end',
+                background: '#fef3c7',
+                iconColor: '#f59e0b'
+            });
         },
 
         setupInfiniteScroll() {
-            const sessionsList = document.getElementById('sessions-list');
-            if (!sessionsList) return;
+            const sentinel = document.getElementById('sessions-sentinel');
+            if (!sentinel) return;
 
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -545,13 +568,7 @@ function chatManager() {
                 });
             }, { threshold: 0.1 });
 
-            const sentinel = document.createElement('div');
-            sentinel.id = 'sessions-sentinel';
-            sentinel.className = 'h-1';
-            sessionsList.appendChild(sentinel);
             observer.observe(sentinel);
-
-            this.sessionsSentinel = sentinel;
             this.sessionsObserver = observer;
         },
 
@@ -559,7 +576,6 @@ function chatManager() {
             if (this.loadingMoreSessions || !this.hasMoreSessions || this.isComponentDestroyed) return;
 
             this.loadingMoreSessions = true;
-            document.getElementById('sessions-loading')?.classList.remove('hidden');
             const nextPage = this.sessionsPage + 1;
 
             try {
@@ -568,28 +584,32 @@ function chatManager() {
                 const data = await response.json();
 
                 if (data.sessions && data.sessions.length > 0) {
-                    const container = document.getElementById('sessions-list');
-                    const sentinel = document.getElementById('sessions-sentinel');
-
-                    data.sessions.forEach(session => {
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = session.html;
-                        const sessionElement = tempDiv.firstElementChild;
-
-                        container.insertBefore(sessionElement, sentinel);
-                        this.sessionMessageCounts.set(session.session_id, session.msgs);
+                    data.sessions.forEach(sessionData => {
+                        if (!this.sessions.find(s => s.session_id === sessionData.session_id)) {
+                            this.sessions.push({
+                                session_id: sessionData.session_id,
+                                last_time: sessionData.last_time,
+                                msgs: sessionData.msgs,
+                                channel_name: sessionData.channel_name,
+                                icon: sessionData.icon,
+                                channel_type: sessionData.channel_type,
+                                highlighted: false,
+                                newMessage: false,
+                                newMessagesCount: 0,
+                            });
+                        }
                     });
+
+                    this.sessions.sort((a, b) => new Date(b.last_time) - new Date(a.last_time));
+                    this.displayedSessions = [...this.sessions];
 
                     this.sessionsPage = data.current_page;
                     this.hasMoreSessions = data.has_more;
-                    this.currentSessions = [...this.currentSessions, ...data.sessions];
-                    this.updateKnownSessions();
                 }
             } catch (error) {
                 console.error('Load more sessions error:', error);
             } finally {
                 this.loadingMoreSessions = false;
-                document.getElementById('sessions-loading')?.classList.add('hidden');
             }
         },
 
@@ -608,9 +628,6 @@ function chatManager() {
             if (this.loadingOlderMessages || !this.hasMoreMessages || this.isComponentDestroyed) return;
 
             this.loadingOlderMessages = true;
-            const loadingEl = document.getElementById('messages-loading');
-            if (loadingEl) loadingEl.classList.remove('hidden');
-
             const nextPage = this.messagesPage + 1;
 
             try {
@@ -623,11 +640,15 @@ function chatManager() {
                     const scrollHeight = container.scrollHeight;
                     const scrollTop = container.scrollTop;
 
-                    [...data.messages].reverse().forEach(message => {
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = message.html;
-                        container.prepend(tempDiv.firstElementChild);
-                    });
+                    const oldMessages = data.messages.map(msg => ({
+                        id: msg.id,
+                        session_id: msg.session_id,
+                        role: msg.role,
+                        content: msg.content,
+                        created_at: msg.created_at,
+                    }));
+
+                    this.messages = [...oldMessages.reverse(), ...this.messages];
 
                     const newScrollHeight = container.scrollHeight;
                     container.scrollTop = scrollTop + (newScrollHeight - scrollHeight);
@@ -641,29 +662,12 @@ function chatManager() {
                 console.error('Load older messages error:', error);
             } finally {
                 this.loadingOlderMessages = false;
-                const loadingEl = document.getElementById('messages-loading');
-                if (loadingEl) loadingEl.classList.add('hidden');
-            }
-        },
-
-        updateKnownSessions() {
-            if (this.currentSessions && this.currentSessions.length > 0 && !this.isComponentDestroyed) {
-                this.currentSessions.forEach(session => {
-                    if (!this.knownSessionIds.has(session.session_id)) {
-                        this.knownSessionIds.add(session.session_id);
-                        this.newSessionsCount++;
-                    }
-                });
             }
         },
 
         setupAutoScroll() {
-            const observer = new MutationObserver((mutations) => {
-                mutations.forEach((mutation) => {
-                    if (mutation.type === 'childList' && mutation.target.id === 'chat-messages' && !this.isComponentDestroyed) {
-                        this.scrollToBottom();
-                    }
-                });
+            const observer = new MutationObserver(() => {
+                this.scrollToBottom();
             });
 
             const messagesContainer = document.getElementById('chat-messages');
@@ -673,13 +677,10 @@ function chatManager() {
         },
 
         startPolling() {
-            if (this.pollingInterval) {
-                clearInterval(this.pollingInterval);
-            }
+            if (this.pollingInterval) clearInterval(this.pollingInterval);
+
             this.pollingInterval = setInterval(() => {
-                if (!this.isComponentDestroyed) {
-                    this.pollMessages();
-                }
+                if (!this.isComponentDestroyed) this.pollMessages();
             }, 1500);
         },
 
@@ -690,122 +691,6 @@ function chatManager() {
             }
         },
 
-        async loadSessionsList() {
-            if (this.isComponentDestroyed) return;
-
-            try {
-                const url = `{{ route('bots.sessions-list', $bot) }}?date_preset=${encodeURIComponent(this.datePreset || '')}&filter_date=${encodeURIComponent(this.filterDate || '')}&limit=100`;
-                const response = await fetch(url);
-                const data = await response.json();
-
-                if (data.sessions && data.sessions.length > 0) {
-                    const newSessions = this.detectNewSessions(data.sessions);
-                    this.currentSessions = data.sessions;
-                    this.renderSessionsList(data.sessions);
-
-                    if (this.isLive && newSessions.length > 0 && !this.userManuallySelectedSession && !this.isComponentDestroyed) {
-                        const latestSession = data.sessions[0];
-                        this.jumpToSession(latestSession.session_id);
-                    } else if (this.isLive && newSessions.length > 0 && this.userManuallySelectedSession) {
-                        newSessions.forEach(session => {
-                            this.highlightSessionInSidebar(session.session_id, true);
-                        });
-                    }
-
-                    this.updateKnownSessions();
-                } else {
-                    this.renderEmptySessions();
-                }
-            } catch (error) {
-                console.error('Load sessions list error:', error);
-            }
-        },
-
-        detectNewSessions(newSessions) {
-            const newOnes = [];
-            newSessions.forEach(session => {
-                if (!this.knownSessionIds.has(session.session_id)) {
-                    newOnes.push(session);
-                }
-            });
-            return newOnes;
-        },
-
-        renderSessionsList(sessions) {
-            if (this.isComponentDestroyed) return;
-
-            const container = document.getElementById('sessions-list');
-            const sentinel = document.getElementById('sessions-sentinel');
-
-            if (!container) return;
-
-            const scrollTop = container.scrollTop;
-            container.querySelectorAll('[data-session-id]').forEach(el => el.remove());
-
-            sessions.forEach(session => {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = session.html ?? this.buildSessionHTML(session);
-                const el = tempDiv.firstElementChild;
-
-                if (session.session_id === this.selectedSessionId) {
-                    el.classList.add('bg-amber-100', 'dark:bg-gray-700', 'ring-2', 'ring-amber-400');
-                }
-
-                container.appendChild(el);
-            });
-
-            container.scrollTop = scrollTop;
-
-            if (sentinel && !container.contains(sentinel)) {
-                container.appendChild(sentinel);
-            }
-        },
-
-        renderEmptySessions() {
-            if (this.isComponentDestroyed) return;
-
-            const container = document.getElementById('sessions-list');
-            if (container && !container.querySelector('.session-item')) {
-                container.innerHTML = `
-                    <div class="p-8 text-center text-amber-400">
-                        <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
-                        <p>No conversations yet</p>
-                    </div>
-                `;
-            }
-        },
-
-        async jumpToSession(sessionId) {
-            if (sessionId === this.selectedSessionId || this.isComponentDestroyed) return;
-
-            this.showNewSessionNotification(sessionId);
-            this.newSessionsCount = 0;
-            this.selectSession(sessionId);
-
-            setTimeout(() => {
-                if (!this.isComponentDestroyed) {
-                    this.userManuallySelectedSession = false;
-                }
-            }, 5000);
-        },
-
-        showNewSessionNotification(sessionId) {
-            const session = this.currentSessions.find(s => s.session_id === sessionId);
-            const channelName = session?.channel_name || 'New conversation';
-
-            Swal.fire({
-                icon: 'info',
-                title: '💬 New Conversation!',
-                text: `${channelName} - Auto-jumping to latest chat`,
-                toast: true,
-                timer: 4000,
-                showConfirmButton: false,
-                position: 'top-end',
-                background: '#fef3c7',
-                iconColor: '#f59e0b'
-            });
-        },
-
         async pollMessages() {
             if (this.isPolling || !this.selectedSessionId || this.isComponentDestroyed) return;
             this.isPolling = true;
@@ -814,27 +699,40 @@ function chatManager() {
                 const response = await fetch(`{{ route('bots.poll', $bot) }}?session_id=${encodeURIComponent(this.selectedSessionId)}&last_id=${this.lastMsgId}`);
                 const data = await response.json();
 
-                if (data.messages && data.messages.length > 0 && !this.isComponentDestroyed) {
+                if (data.messages && data.messages.length > 0) {
                     data.messages.forEach(msg => {
                         const msgId = parseInt(msg.id, 10);
                         if (msgId > this.lastMsgId) {
-                            this.appendMessage(msg);
+                            this.messages.push({
+                                id: msg.id,
+                                session_id: msg.session_id,
+                                role: msg.role,
+                                content: msg.content,
+                                created_at: msg.created_at,
+                            });
                             this.lastMsgId = msgId;
                         }
                     });
+                    this.scrollToBottom();
                 }
 
                 if (data.session && !this.isComponentDestroyed) {
-                    this.updateSessionSidebar(data.session);
+                    // Update session in list
+                    const sessionIndex = this.sessions.findIndex(s => s.session_id === data.session.session_id);
+                    if (sessionIndex !== -1) {
+                        this.sessions[sessionIndex].last_time = data.session.last_time;
+                        this.sessions[sessionIndex].msgs = data.session.msgs;
 
-                    const currentCount = data.session.msgs;
-                    const previousCount = this.sessionMessageCounts.get(data.session.session_id) || 0;
-                    if (currentCount > previousCount && this.selectedSessionId !== data.session.session_id) {
-                        this.highlightSessionInSidebar(data.session.session_id, true);
+                        // Move to top if not current session
+                        if (data.session.session_id !== this.selectedSessionId && sessionIndex > 0) {
+                            const [moved] = this.sessions.splice(sessionIndex, 1);
+                            this.sessions.unshift(moved);
+                            this.highlightSessionInSidebar(data.session.session_id, 1);
+                        }
+
+                        this.displayedSessions = [...this.sessions];
                     }
-                    this.sessionMessageCounts.set(data.session.session_id, currentCount);
                 }
-
             } catch (error) {
                 console.error('Polling error:', error);
             } finally {
@@ -842,54 +740,12 @@ function chatManager() {
             }
         },
 
-        appendMessage(message) {
-            if (this.isComponentDestroyed) return;
-
-            const container = document.getElementById('chat-messages');
-            if (!container) return;
-
-            const emptyState = document.getElementById('empty-state');
-            if (emptyState) emptyState.remove();
-
-            const messageHtml = this.renderMessage(message);
-            container.insertAdjacentHTML('beforeend', messageHtml);
-            this.scrollToBottom();
-        },
-
-        updateSessionSidebar(session) {
-            if (!session || session.session_id !== this.selectedSessionId || this.isComponentDestroyed) return;
-
-            const safeId = CSS.escape(session.session_id);
-            const sessionItem = document.querySelector(`[data-session-id="${safeId}"]`);
-            if (sessionItem) {
-                const container = document.getElementById('sessions-list');
-                if (sessionItem && container) {
-                    container.prepend(sessionItem);
-                }
-
-                const timeSpan = sessionItem.querySelector('.session-last-time span:first-child');
-                if (timeSpan && session.last_time) {
-                    timeSpan.textContent = new Date(session.last_time).toLocaleString();
-                }
-
-                const countSpan = sessionItem.querySelector('.session-msg-count span:first-child');
-                if (countSpan && session.msgs) {
-                    const oldCount = parseInt(countSpan.textContent) || 0;
-                    countSpan.textContent = session.msgs;
-
-                    if (session.msgs > oldCount && this.selectedSessionId !== session.session_id) {
-                        this.highlightSessionInSidebar(session.session_id, true);
-                    }
-                }
-            }
-        },
-
         async sendReply() {
             const message = this.replyMessage.trim();
             if (!message || this.isComponentDestroyed) return;
 
-            const btn = document.getElementById('reply-submit-btn');
-            const input = document.getElementById('reply-message');
+            const btn = document.querySelector('#reply-form button[type="submit"]');
+            const input = document.querySelector('#reply-form input');
 
             if (btn) btn.disabled = true;
             if (input) input.disabled = true;
@@ -910,28 +766,34 @@ function chatManager() {
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-
                 const data = await response.json();
 
                 if (data.success && data.message && !this.isComponentDestroyed) {
                     const msgId = parseInt(data.message.id, 10);
                     if (msgId > this.lastMsgId) {
-                        this.appendMessage(data.message);
+                        this.messages.push({
+                            id: data.message.id,
+                            session_id: data.message.session_id,
+                            role: data.message.role,
+                            content: data.message.content,
+                            created_at: data.message.created_at,
+                        });
                         this.lastMsgId = msgId;
+                        this.scrollToBottom();
                     }
 
+                    // Update session stats in sidebar
                     if (data.session_stats) {
-                        this.updateSessionSidebar(data.session_stats);
+                        const sessionIndex = this.sessions.findIndex(s => s.session_id === data.session_stats.session_id);
+                        if (sessionIndex !== -1) {
+                            this.sessions[sessionIndex].msgs = data.session_stats.msgs;
+                            this.sessions[sessionIndex].last_time = data.session_stats.last_time;
+                            this.displayedSessions = [...this.sessions];
+                        }
                     }
-
-                    await this.loadSessionsList();
                 }
 
                 this.replyMessage = '';
-
             } catch (error) {
                 console.error('Send reply error:', error);
                 Swal.fire('Oops!', 'Could not send message. Try again?', 'error');
@@ -948,30 +810,95 @@ function chatManager() {
             if (sessionId === this.selectedSessionId || this.isComponentDestroyed) return;
 
             this.userManuallySelectedSession = true;
+            this.newSessionsCount = 0;
 
-            const safeId = CSS.escape(sessionId);
-            const sessionItem = document.querySelector(`[data-session-id="${safeId}"]`);
-            if (sessionItem) {
-                sessionItem.classList.remove('session-item-highlight', 'session-item-new-message');
-                const badge = sessionItem.querySelector('.new-badge');
-                if (badge) badge.remove();
+            // Clear highlight from this session
+            const sessionIndex = this.sessions.findIndex(s => s.session_id === sessionId);
+            if (sessionIndex !== -1) {
+                this.sessions[sessionIndex].highlighted = false;
+                this.sessions[sessionIndex].newMessagesCount = 0;
+                this.displayedSessions = [...this.sessions];
             }
-
-            const currentCount = this.sessionMessageCounts.get(sessionId) || 0;
-            this.sessionMessageCounts.set(sessionId, currentCount);
 
             this.stopPolling();
             this.selectedSessionId = sessionId;
             this.lastMsgId = 0;
             this.messagesPage = 1;
             this.hasMoreMessages = false;
+            this.messages = [];
 
+            // Load messages for this session
+            try {
+                const url = `{{ route('bots.load-more-messages', $bot) }}?session_id=${encodeURIComponent(sessionId)}&page=1&per_page=${this.messagesPerPage}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data && data.messages) {
+                    this.messages = data.messages.map(msg => ({
+                        id: msg.id,
+                        session_id: msg.session_id,
+                        role: msg.role,
+                        content: msg.content,
+                        created_at: msg.created_at,
+                    })).reverse();
+
+                    this.hasMoreMessages = data.has_more;
+                    this.messagesPage = 1;
+
+                    // Update last message ID
+                    if (this.messages.length > 0) {
+                        this.lastMsgId = Math.max(...this.messages.map(m => m.id));
+                    }
+                }
+            } catch (error) {
+                console.error('Load messages error:', error);
+            }
+
+            this.startPolling();
+            this.scrollToBottom();
+
+            // Update URL without reload
             const url = new URL(window.location.href);
             url.searchParams.set('session_id', sessionId);
-            if (this.datePreset) url.searchParams.set('date_preset', this.datePreset);
-            if (this.filterDate) url.searchParams.set('filter_date', this.filterDate);
+            window.history.pushState({}, '', url);
 
-            window.location.href = url.toString();
+            // Reset manual selection flag after 5 seconds
+            setTimeout(() => {
+                if (!this.isComponentDestroyed) {
+                    this.userManuallySelectedSession = false;
+                }
+            }, 5000);
+        },
+
+        async jumpToSession(sessionId) {
+            if (sessionId === this.selectedSessionId || this.isComponentDestroyed) return;
+            this.selectSession(sessionId);
+        },
+
+        checkForMoreMessages() {
+            this.hasMoreMessages = this.messages.length >= this.messagesPerPage;
+        },
+
+        scrollToBottom() {
+            setTimeout(() => {
+                const container = document.getElementById('chat-messages');
+                if (container && !this.isComponentDestroyed) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 100);
+        },
+
+        formatTime(date, isTimeOnly = false) {
+            if (!date) return 'Just now';
+            try {
+                const d = new Date(date);
+                if (isTimeOnly) {
+                    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+                return d.toLocaleString();
+            } catch {
+                return 'Just now';
+            }
         },
 
         async clearSession(sessionId) {
@@ -1002,24 +929,17 @@ function chatManager() {
                 const data = await response.json();
 
                 if (data.success && !this.isComponentDestroyed) {
-                    this.knownSessionIds.delete(sessionId);
-                    this.sessionMessageCounts.delete(sessionId);
-
-                    await this.loadSessionsList();
+                    // Remove session from list
+                    const index = this.sessions.findIndex(s => s.session_id === sessionId);
+                    if (index !== -1) {
+                        this.sessions.splice(index, 1);
+                        this.displayedSessions = [...this.sessions];
+                    }
 
                     if (this.selectedSessionId === sessionId) {
                         this.stopPolling();
                         this.selectedSessionId = null;
-                        const messagesContainer = document.getElementById('chat-messages');
-                        if (messagesContainer) {
-                            messagesContainer.innerHTML = `
-                                <div class="flex-1 flex flex-col items-center justify-center h-full opacity-80">
-                                    <div class="text-6xl mb-4">🗑️</div>
-                                    <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">Session Cleared</h3>
-                                    <p class="text-amber-500 dark:text-amber-400 mt-2">Select another conversation from the sidebar</p>
-                                </div>
-                            `;
-                        }
+                        this.messages = [];
                     }
 
                     Swal.fire('Cleared!', 'The session has been cleared.', 'success');
@@ -1056,24 +976,13 @@ function chatManager() {
                 const data = await response.json();
 
                 if (data.success && !this.isComponentDestroyed) {
-                    this.knownSessionIds.clear();
+                    this.sessions = [];
+                    this.displayedSessions = [];
                     this.sessionMessageCounts.clear();
                     this.newSessionsCount = 0;
-
-                    await this.loadSessionsList();
-
                     this.stopPolling();
                     this.selectedSessionId = null;
-                    const messagesContainer = document.getElementById('chat-messages');
-                    if (messagesContainer) {
-                        messagesContainer.innerHTML = `
-                            <div class="flex-1 flex flex-col items-center justify-center h-full opacity-80">
-                                <div class="text-6xl mb-4">🧹</div>
-                                <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">All Chats Cleared</h3>
-                                <p class="text-amber-500 dark:text-amber-400 mt-2">Ready for new conversations</p>
-                            </div>
-                        `;
-                    }
+                    this.messages = [];
 
                     Swal.fire('Cleaned!', 'All chats have been cleared.', 'success');
                 }
@@ -1099,74 +1008,6 @@ function chatManager() {
             }
             url.searchParams.delete('session_id');
             window.location.href = url.toString();
-        },
-
-        scrollToBottom() {
-            setTimeout(() => {
-                const container = document.getElementById('chat-messages');
-                if (container && !this.isComponentDestroyed) {
-                    container.scrollTop = container.scrollHeight;
-                }
-            }, 100);
-        },
-
-        escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        },
-
-        renderMessage(message) {
-            const isUser = message.role === 'user';
-            const isAdmin = message.role === 'admin';
-
-            const align = isAdmin ? 'justify-end' : 'justify-start';
-            const bgClass = isAdmin ? 'gradient-warm text-amber-900' :
-                           (isUser ? 'bg-white dark:bg-gray-700 border border-amber-200 dark:border-gray-600 text-amber-800 dark:text-amber-200' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300');
-            const roleLabel = isAdmin ? 'You' : (isUser ? 'Customer' : '🤖 AI Assistant');
-            const roleIcon = isAdmin ? 'fa-user-tie' : (isUser ? 'fa-user' : 'fa-robot');
-            const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-            return `
-                <div class="flex ${align} animate-gentle group">
-                    <div class="max-w-[75%] ${bgClass} rounded-2xl p-3 shadow-sm">
-                        <div class="flex items-center gap-2 text-xs opacity-70 mb-1">
-                            <i class="fas ${roleIcon}"></i>
-                            <span>${roleLabel}</span>
-                            <span>•</span>
-                            <span>${time}</span>
-                        </div>
-                        <div class="text-sm whitespace-pre-wrap break-words leading-relaxed">${parseMarkdown(message.content)}</div>
-                    </div>
-                </div>
-            `;
-        },
-
-        buildSessionHTML(session) {
-            const channelIcon = session.icon || '💬';
-            const channelName = session.channel_name || (session.channel_type === 'web' ? 'Website' : 'Chat');
-            const lastTime = session.last_time ? new Date(session.last_time).toLocaleString() : '';
-
-            return `
-                <div class="session-item group p-3 rounded-xl cursor-pointer transition-all hover:bg-amber-50 dark:hover:bg-gray-700/50 border border-transparent hover:border-amber-200 dark:hover:border-gray-600" data-session-id="${session.session_id}">
-                    <div class="flex items-center gap-3">
-                        <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white shadow-sm">
-                            <span class="text-lg">${channelIcon}</span>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between">
-                                <p class="text-sm font-medium text-amber-800 dark:text-amber-200 truncate">${channelName}</p>
-                                <span class="session-msg-count text-xs text-amber-500 dark:text-amber-400"><span>${session.msgs}</span> msgs</span>
-                            </div>
-                            <div class="session-last-time flex items-center gap-2 text-xs text-amber-400 dark:text-amber-500 mt-0.5">
-                                <i class="fas fa-clock text-xs"></i>
-                                <span>${lastTime || 'Just now'}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
         }
     }
 }
