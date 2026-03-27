@@ -306,7 +306,7 @@ function chatManager() {
                             <span>•</span>
                             <span>${time}</span>
                         </div>
-                        <div class="text-sm whitespace-pre-wrap break-words leading-relaxed">$${parseMarkdown(message.content)}</div>
+                        <div class="text-sm whitespace-pre-wrap break-words leading-relaxed">${parseMarkdown(message.content)}</div>
                     </div>
                 </div>
             `;
