@@ -93,9 +93,6 @@
                                     </span>
                                 </div>
                             </div>
-                            @if($isLive && !hasRecentAdminReply($bot, $session->session_id))
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
-                            @endif
                         </div>
                     </a>
                     @empty
@@ -264,8 +261,8 @@ function chatManager() {
 
                 html += `
                     <a href="#"
-                       data-session-id="${this.escapeHtml(session.session_id)}"
-                       class="session-item block p-3 rounded-xl transition-all ${isActive ? 'gradient-warm text-amber-900 shadow-md' : 'hover:bg-amber-50 dark:hover:bg-gray-800'}">
+                    data-session-id="${this.escapeHtml(session.session_id)}"
+                    class="session-item block p-3 rounded-xl transition-all ${isActive ? 'gradient-warm text-amber-900 shadow-md' : 'hover:bg-amber-50 dark:hover:bg-gray-800'}">
                         <div class="flex items-start justify-between">
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2">
@@ -288,9 +285,6 @@ function chatManager() {
                                     </span>
                                 </div>
                             </div>
-                            ${this.isLive && !session.has_recent_admin ? `
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
-                            ` : ''}
                         </div>
                     </a>
                 `;
@@ -586,14 +580,14 @@ function chatManager() {
         },
 
         renderMessage(message) {
-            const isUser = message.role === 'user';
-            const isAdmin = message.role === 'admin';
+            const isGuest = message.role === 'guest';
+            const isStaff = message.role === 'staff';
 
-            const align = isAdmin ? 'justify-end' : 'justify-start';
-            const bgClass = isAdmin ? 'gradient-warm text-amber-900' :
-                           (isUser ? 'bg-white dark:bg-gray-700 border border-amber-200 dark:border-gray-600 text-amber-800 dark:text-amber-200' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300');
-            const roleLabel = isAdmin ? 'You' : (isUser ? 'Customer' : '🤖 AI Assistant');
-            const roleIcon = isAdmin ? 'fa-user-tie' : (isUser ? 'fa-user' : 'fa-robot');
+            const align = isStaff ? 'justify-end' : 'justify-start';
+            const bgClass = isStaff ? 'gradient-warm text-amber-900' :
+                           (isGuest ? 'bg-white dark:bg-gray-700 border border-amber-200 dark:border-gray-600 text-amber-800 dark:text-amber-200' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300');
+            const roleLabel = isStaff ? 'You' : (isGuest ? 'Guest' : '🤖 AI Assistant');
+            const roleIcon = isStaff ? 'fa-user-tie' : (isGuest ? 'fa-user' : 'fa-robot');
             const time = new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             return `

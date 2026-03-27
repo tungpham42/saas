@@ -106,7 +106,6 @@ class ChatController extends Controller
                 'session_id' => $session->session_id,
                 'last_time' => $this->formatDateForJson($session->last_time),
                 'msgs' => $session->msgs,
-                'has_recent_admin' => $this->hasRecentAdminReply($bot, $session->session_id),
                 'channel_name' => $sessionInfo['channel_name'] ?? null,
                 'icon' => $sessionInfo['icon'] ?? '💬',
                 'channel_type' => $sessionInfo['type'] ?? 'web'
@@ -625,18 +624,6 @@ class ChatController extends Controller
             'start_time' => $messages->first()['created_at'] ?? null,
             'last_activity' => $messages->last()['created_at'] ?? null,
         ]);
-    }
-
-    /**
-     * Check if session has recent admin reply
-     */
-    private function hasRecentAdminReply(Bot $bot, string $sessionId): bool
-    {
-        return $bot->chatLogs()
-            ->where('session_id', $sessionId)
-            ->where('role', 'admin')
-            ->where('created_at', '>=', now()->subMinutes(10))
-            ->exists();
     }
 
     /**

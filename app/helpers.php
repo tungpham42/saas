@@ -58,19 +58,3 @@ if (!function_exists('parseSessionId')) {
         ];
     }
 }
-
-if (!function_exists('hasRecentAdminReply')) {
-    /**
-     * Check if an admin has replied recently to stop the "unread" pulsing animation.
-     */
-    function hasRecentAdminReply(Bot $bot, $sessionId)
-    {
-        $lastMessage = ChatLog::where('bot_id', $bot->id)
-            ->where('session_id', $sessionId)
-            ->orderBy('id', 'desc')
-            ->first();
-
-        // If the last message was from an admin, return true
-        return $lastMessage && $lastMessage->role === 'admin';
-    }
-}
