@@ -1,5 +1,4 @@
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+<script>
 (function() {
     const API_KEY = '{{ $apiKey }}';
     const API_URL = '{{ url('/') }}';
@@ -7,6 +6,21 @@
 
     // Prevent multiple instances
     if (window.AIChatWidget) return;
+
+    // Helper function to dynamically load external scripts
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            // Check if the script is already loaded to avoid duplicates
+            if (document.querySelector(`script[src="${src}"]`)) {
+                return resolve();
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
 
     // Widget state
     let isOpen = false;
@@ -53,270 +67,70 @@
 
     // Create widget styles
     const styles = `
-        .ai-chat-widget * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        .ai-chat-widget * { box-sizing: border-box; margin: 0; padding: 0; }
         .ai-chat-trigger {
             position: fixed;
             bottom: ${settings.position.bottom};
             ${settings.position.left !== 'auto' ? `left: ${settings.position.left};` : `right: ${settings.position.right};`}
-            width: 60px;
-            height: 60px;
+            width: 60px; height: 60px;
             border-radius: ${settings.triggerRadius};
             ${settings.triggerBgCss}
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            transition: transform 0.2s ease;
-            z-index: 999999;
-            border: none;
-            outline: none;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 28px; transition: transform 0.2s ease; z-index: 999999;
+            border: none; outline: none;
         }
-
-        .ai-chat-trigger img {
-            width: 100%;
-            height: 100%;
-            border-radius: ${settings.triggerRadius};
-            object-fit: cover;
-            pointer-events: none;
-        }
-
-        .ai-chat-trigger:hover {
-            transform: scale(1.05);
-        }
-
+        .ai-chat-trigger img { width: 100%; height: 100%; border-radius: ${settings.triggerRadius}; object-fit: cover; pointer-events: none; }
+        .ai-chat-trigger:hover { transform: scale(1.05); }
         .ai-chat-window {
-            position: fixed;
-            max-height: calc(100vh - 100px) !important;
+            position: fixed; max-height: calc(100vh - 100px) !important;
             bottom: calc(${settings.position.bottom} + 70px);
             ${settings.position.left !== 'auto' ? `left: ${settings.position.left};` : `right: ${settings.position.right};`}
-            width: 380px;
-            height: 600px;
-            background: ${settings.bgColor};
-            border-radius: 16px;
+            width: 380px; height: 600px;
+            background: ${settings.bgColor}; border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-            display: flex;
-            flex-direction: column;
-            z-index: 999998;
-            transition: all 0.3s ease;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex; flex-direction: column; z-index: 999998;
+            transition: all 0.3s ease; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-
-        .ai-chat-window input, .ai-chat-window input:focus {
-            color: ${settings.textColor} !important;
-        }
-
-        .ai-chat-window.closed {
-            display: none;
-        }
-
+        .ai-chat-window input, .ai-chat-window input:focus { color: ${settings.textColor} !important; }
+        .ai-chat-window.closed { display: none; }
         .ai-chat-header {
-            background: ${settings.color};
-            color: white;
-            padding: 16px;
-            border-radius: 16px 16px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: ${settings.color}; color: white; padding: 16px; border-radius: 16px 16px 0 0;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .ai-chat-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .ai-chat-close {
-            cursor: pointer;
-            font-size: 20px;
-            background: none;
-            border: none;
-            color: white;
-            font-weight: bold;
-        }
-
-        .ai-chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .ai-chat-message {
-            display: flex;
-            gap: 8px;
-            animation: slideIn 0.3s ease;
-        }
-
-        .ai-chat-message.user {
-            justify-content: flex-end;
-        }
-
-        .ai-chat-message.bot {
-            justify-content: flex-start;
-        }
-
-        .ai-chat-bubble {
-            max-width: 70%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .ai-chat-message.user .ai-chat-bubble {
-            background: ${settings.color};
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .ai-chat-message.bot .ai-chat-bubble {
-            background: #f0f0f0;
-            color: ${settings.textColor};
-            border-bottom-left-radius: 4px;
-        }
-
-        .ai-chat-input-area {
-            padding: 16px;
-            border-top: 1px solid #e5e7eb;
-            display: flex;
-            gap: 8px;
-        }
-
-        .ai-chat-input {
-            flex: 1;
-            padding: 10px 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 24px;
-            outline: none;
-            font-size: 14px;
-        }
-
-        .ai-chat-input:focus {
-            border-color: ${settings.color};
-        }
-
-        .ai-chat-send {
-            background: ${settings.color};
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 24px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: opacity 0.2s;
-        }
-
-        .ai-chat-send:hover {
-            opacity: 0.9;
-        }
-
-        .ai-chat-send:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .ai-chat-prechat {
-            padding: 16px;
-        }
-
-        .ai-chat-prechat h4 {
-            margin-bottom: 16px;
-            color: ${settings.textColor};
-        }
-
-        .ai-chat-prechat input {
-            width: 100%;
-            padding: 10px 12px;
-            margin-bottom: 12px;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .ai-chat-prechat button {
-            width: 100%;
-            background: ${settings.color};
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .ai-chat-error {
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 12px;
-            margin-bottom: 12px;
-        }
-
-        .ai-chat-typing {
-            display: flex;
-            gap: 4px;
-            padding: 10px 14px;
-            background: #f0f0f0;
-            border-radius: 18px;
-            width: fit-content;
-        }
-
-        .ai-chat-typing span {
-            width: 8px;
-            height: 8px;
-            background: #999;
-            border-radius: 50%;
-            animation: typing 1.4s infinite;
-        }
-
-        .ai-chat-typing span:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .ai-chat-typing span:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
+        .ai-chat-header h3 { margin: 0; font-size: 18px; font-weight: 600; }
+        .ai-chat-close { cursor: pointer; font-size: 20px; background: none; border: none; color: white; font-weight: bold; }
+        .ai-chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .ai-chat-message { display: flex; gap: 8px; animation: slideIn 0.3s ease; }
+        .ai-chat-message.user { justify-content: flex-end; }
+        .ai-chat-message.bot { justify-content: flex-start; }
+        .ai-chat-bubble { max-width: 70%; padding: 10px 14px; border-radius: 18px; word-wrap: break-word; font-size: 14px; line-height: 1.4; }
+        .ai-chat-message.user .ai-chat-bubble { background: ${settings.color}; color: white; border-bottom-right-radius: 4px; }
+        .ai-chat-message.bot .ai-chat-bubble { background: #f0f0f0; color: ${settings.textColor}; border-bottom-left-radius: 4px; }
+        .ai-chat-input-area { padding: 16px; border-top: 1px solid #e5e7eb; display: flex; gap: 8px; }
+        .ai-chat-input { flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 24px; outline: none; font-size: 14px; }
+        .ai-chat-input:focus { border-color: ${settings.color}; }
+        .ai-chat-send { background: ${settings.color}; color: white; border: none; padding: 8px 20px; border-radius: 24px; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
+        .ai-chat-send:hover { opacity: 0.9; }
+        .ai-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+        .ai-chat-prechat { padding: 16px; }
+        .ai-chat-prechat h4 { margin-bottom: 16px; color: ${settings.textColor}; }
+        .ai-chat-prechat input { width: 100%; padding: 10px 12px; margin-bottom: 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; }
+        .ai-chat-prechat button { width: 100%; background: ${settings.color}; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+        .ai-chat-error { background: #fee2e2; color: #dc2626; padding: 8px; border-radius: 8px; font-size: 12px; margin-bottom: 12px; }
+        .ai-chat-typing { display: flex; gap: 4px; padding: 10px 14px; background: #f0f0f0; border-radius: 18px; width: fit-content; }
+        .ai-chat-typing span { width: 8px; height: 8px; background: #999; border-radius: 50%; animation: typing 1.4s infinite; }
+        .ai-chat-typing span:nth-child(2) { animation-delay: 0.2s; }
+        .ai-chat-typing span:nth-child(3) { animation-delay: 0.4s; }
         @keyframes typing {
-            0%, 60%, 100% {
-                transform: translateY(0);
-                opacity: 0.4;
-            }
-            30% {
-                transform: translateY(-10px);
-                opacity: 1;
-            }
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-10px); opacity: 1; }
         }
-
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
         @media (max-width: 480px) {
-            .ai-chat-window {
-                width: 100%;
-                height: 100%;
-                bottom: 0;
-                ${settings.position.left !== 'auto' ? `left: 0;` : `right: 0;`}
-                border-radius: 0;
-            }
+            .ai-chat-window { width: 100%; height: 100%; bottom: 0; ${settings.position.left !== 'auto' ? `left: 0;` : `right: 0;`} border-radius: 0; }
         }
     `;
 
@@ -324,25 +138,13 @@
     async function sendMessage(message) {
         if (isLoading) return;
         isLoading = true;
-
         try {
             const response = await fetch(`${API_BASE}/chat`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    api_key: API_KEY,
-                    session_id: sessionId,
-                    message: message
-                })
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ api_key: API_KEY, session_id: sessionId, message: message })
             });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-
+            if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             return data.response || 'Sorry, I encountered an error.';
         } catch (error) {
@@ -358,7 +160,6 @@
         try {
             const response = await fetch(`${API_BASE}/poll?api_key=${API_KEY}&session_id=${sessionId}&last_id=${lastMessageId}`);
             const data = await response.json();
-
             if (data.messages && data.messages.length > 0) {
                 data.messages.forEach(message => {
                     addMessageToChat(message.message, message.role === 'user');
@@ -373,7 +174,7 @@
     }
 
     function parseMarkdown(text) {
-        if (typeof marked !== 'undefined') {
+        if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
             const raw = marked.parse(text);
             return DOMPurify.sanitize(raw);
         }
@@ -383,7 +184,6 @@
     // Add message to chat
     function addMessageToChat(text, isUser) {
         if (!messagesContainer) return;
-
         const messageDiv = document.createElement('div');
         messageDiv.className = `ai-chat-message ${isUser ? 'user' : 'bot'}`;
         messageDiv.innerHTML = `<div class="ai-chat-bubble">${parseMarkdown(text)}</div>`;
@@ -394,17 +194,10 @@
     // Show typing indicator
     function showTyping() {
         if (!messagesContainer) return;
-
         const typingDiv = document.createElement('div');
         typingDiv.className = 'ai-chat-message bot';
         typingDiv.id = 'ai-typing-indicator';
-        typingDiv.innerHTML = `
-            <div class="ai-chat-typing">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-        `;
+        typingDiv.innerHTML = `<div class="ai-chat-typing"><span></span><span></span><span></span></div>`;
         messagesContainer.appendChild(typingDiv);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
@@ -418,7 +211,6 @@
     // Handle sending message
     async function handleSendMessage() {
         if (!inputField) return;
-
         const message = inputField.value.trim();
         if (!message || isLoading) return;
 
@@ -439,24 +231,14 @@
         inputField = chatWindow.querySelector('.ai-chat-input');
         sendButton = chatWindow.querySelector('.ai-chat-send');
 
-        // Clear messages if needed
-        if (settings.clearOnClose) {
-            messagesContainer.innerHTML = '';
-        }
+        if (settings.clearOnClose) messagesContainer.innerHTML = '';
+        if (messagesContainer.children.length === 0) addMessageToChat(settings.welcomeMsg, false);
 
-        // Add welcome message if chat is empty
-        if (messagesContainer.children.length === 0) {
-            addMessageToChat(settings.welcomeMsg, false);
-        }
-
-        // Setup event listeners
         inputField.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleSendMessage();
         });
-
         sendButton.addEventListener('click', handleSendMessage);
 
-        // Start polling
         if (pollInterval) clearInterval(pollInterval);
         pollInterval = setInterval(pollMessages, 3000);
     }
@@ -497,19 +279,11 @@
             errorDiv.style.display = 'none';
             preChatData = { name, phone };
 
-            // Send lead data to server
             try {
                 await fetch(`${API_BASE}/capture-lead`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        api_key: API_KEY,
-                        session_id: sessionId,
-                        name: name,
-                        phone: phone
-                    })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ api_key: API_KEY, session_id: sessionId, name: name, phone: phone })
                 });
             } catch (error) {
                 console.error('Error saving lead:', error);
@@ -518,7 +292,6 @@
             messagesContainer.innerHTML = '';
             addMessageToChat(settings.welcomeMsg, false);
 
-            // Setup chat handlers
             inputField = chatWindow.querySelector('.ai-chat-input');
             sendButton = chatWindow.querySelector('.ai-chat-send');
 
@@ -540,19 +313,16 @@
 
     // Create widget
     function createWidget() {
-        // Add styles
         const styleSheet = document.createElement('style');
         styleSheet.textContent = styles;
         document.head.appendChild(styleSheet);
 
-        // Create trigger button
         triggerButton = document.createElement('button');
         triggerButton.className = 'ai-chat-trigger';
         triggerButton.innerHTML = settings.triggerIcon;
         triggerButton.setAttribute('aria-label', 'Open chat');
         document.body.appendChild(triggerButton);
 
-        // Create chat window
         chatWindow = document.createElement('div');
         chatWindow.className = 'ai-chat-window closed';
         chatWindow.innerHTML = `
@@ -568,7 +338,6 @@
         `;
         document.body.appendChild(chatWindow);
 
-        // Toggle chat
         triggerButton.addEventListener('click', () => {
             isOpen = !isOpen;
             if (isOpen) {
@@ -587,7 +356,6 @@
             }
         });
 
-        // Close button
         const closeBtn = chatWindow.querySelector('.ai-chat-close');
         closeBtn.addEventListener('click', () => {
             isOpen = false;
@@ -599,21 +367,10 @@
         });
     }
 
-    // Initialize on page load
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', createWidget);
-    } else {
-        createWidget();
-    }
-
     // Expose API
     window.AIChatWidget = {
-        open: () => {
-            if (triggerButton && !isOpen) triggerButton.click();
-        },
-        close: () => {
-            if (triggerButton && isOpen) triggerButton.click();
-        },
+        open: () => { if (triggerButton && !isOpen) triggerButton.click(); },
+        close: () => { if (triggerButton && isOpen) triggerButton.click(); },
         send: async (message) => {
             if (chatWindow && isOpen && !isLoading) {
                 return await sendMessage(message);
@@ -621,4 +378,28 @@
         },
         isOpen: () => isOpen
     };
+
+    // --- BOOTSTRAP WIDGET ---
+    async function bootWidget() {
+        try {
+            // Wait for both marked.js and dompurify to inject and load successfully
+            await Promise.all([
+                loadScript('https://cdn.jsdelivr.net/npm/marked/marked.min.js'),
+                loadScript('https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js')
+            ]);
+
+            // Render the widget once loaded
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', createWidget);
+            } else {
+                createWidget();
+            }
+        } catch (error) {
+            console.error("AI Chat Widget: Failed to load external dependencies", error);
+        }
+    }
+
+    bootWidget();
+
 })();
+</script>

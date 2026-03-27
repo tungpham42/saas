@@ -7,8 +7,15 @@
     <!-- Header -->
     <div class="flex flex-wrap justify-between items-center gap-4 animate-gentle">
         <div>
-            <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">Bot's Journey 📊</h1>
-            <p class="text-amber-600 dark:text-amber-400 mt-1">See how {{ $bot->name }} is helping people</p>
+            <div class="flex items-center gap-4">
+                <a href="{{ route('bots.show', $bot) }}" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">Bot's Journey 📊</h1>
+                    <p class="text-amber-600 dark:text-amber-400 mt-1">See how {{ $bot->name }} is helping people</p>
+                </div>
+            </div>
         </div>
         <button onclick="window.print()" class="btn-outline-soft inline-flex items-center gap-2">
             <i class="fas fa-print"></i>
