@@ -165,15 +165,22 @@ class ChatController extends Controller
      */
     private function updateSessionStats(Bot $bot, string $sessionId): void
     {
-        SessionStat::updateOrCreate(
-            ['bot_id' => $bot->id, 'session_id' => $sessionId],
-            [
-                'start_time' => DB::raw('COALESCE(start_time, NOW())'),
-                'first_admin_time' => DB::raw('COALESCE(first_admin_time, NOW())'),
-                'last_admin_time' => DB::raw('CURRENT_TIMESTAMP'),
-                'admin_msg_count' => DB::raw('admin_msg_count + 1'),
-            ]
-        );
+        $stat = SessionStat::firstOrNew([
+            'bot_id' => $bot->id,
+            'session_id' => $sessionId
+        ]);
+
+        if (!$stat->exists) {
+            $stat->start_time = now();
+            $stat->first_admin_time = now();
+            $stat->admin_msg_count = 1;
+        } else {
+            $stat->admin_msg_count += 1;
+        }
+
+        $stat->last_admin_time = now();
+
+        $stat->save();
     }
 
     /**
