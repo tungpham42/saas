@@ -106,16 +106,8 @@ class BotController extends Controller
             'ui_pos_right' => 'nullable|string|max:20',
             'ui_pos_left' => 'nullable|string|max:20',
             'ui_trigger_icon' => 'nullable|string',
-            'ui_trigger_custom_icon' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:1024', // Thêm validation cho custom icon
-            'ui_trigger_bg_transparent' => 'boolean',
+            'ui_trigger_custom_icon' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:1024',
             'ui_trigger_border_radius' => 'nullable|string|max:20',
-            'ui_clear_on_close' => 'boolean',
-            'ui_pre_chat_form' => 'boolean',
-            'ui_pre_chat_msg' => 'nullable|string',
-            'ui_pre_chat_name_label' => 'nullable|string',
-            'ui_pre_chat_phone_label' => 'nullable|string',
-            'ui_pre_chat_btn_text' => 'nullable|string',
-            'ui_pre_chat_error_msg' => 'nullable|string',
             'admin_timeout_mins' => 'nullable|integer|min:0',
             'history_limit' => 'nullable|integer|min:0',
             'email_notify_addresses' => 'nullable|string',
@@ -126,23 +118,28 @@ class BotController extends Controller
         $validated['ui_clear_on_close'] = $request->boolean('ui_clear_on_close');
         $validated['ui_pre_chat_form'] = $request->boolean('ui_pre_chat_form');
 
-        // Xử lý upload custom icon
+        // Handle custom icon upload
         if ($request->hasFile('ui_trigger_custom_icon')) {
-            // Xóa icon cũ nếu có
+            // Delete old icon if it exists
             if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
-                unlink(public_path($bot->ui_trigger_custom_icon));
+                @unlink(public_path($bot->ui_trigger_custom_icon));
             }
 
             $iconFile = $request->file('ui_trigger_custom_icon');
             $iconName = 'bot_' . $bot->id . '_icon_' . time() . '.' . $iconFile->getClientOriginalExtension();
-            $iconPath = $iconFile->move(public_path('uploads/bot-icons'), $iconName);
+            $iconFile->move(public_path('uploads/bot-icons'), $iconName);
+
             $validated['ui_trigger_custom_icon'] = 'uploads/bot-icons/' . $iconName;
-        } elseif ($request->has('remove_custom_icon') && $request->remove_custom_icon) {
-            // Xóa custom icon nếu người dùng chọn remove
+
+        } elseif ($request->boolean('remove_custom_icon')) {
+            // Delete custom icon if user chooses to remove it
             if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
-                unlink(public_path($bot->ui_trigger_custom_icon));
+                @unlink(public_path($bot->ui_trigger_custom_icon));
             }
             $validated['ui_trigger_custom_icon'] = null;
+
+        } else {
+            unset($validated['ui_trigger_custom_icon']);
         }
 
         $bot->update($validated);

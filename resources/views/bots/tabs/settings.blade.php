@@ -9,7 +9,7 @@
             <p class="text-amber-800/70 text-sm mt-1">Configure your bot's brain and behavior</p>
         </div>
 
-        <form action="{{ route('bots.update', $bot) }}" method="POST" class="p-6 space-y-6">
+        <form action="{{ route('bots.update', $bot) }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-6">
             @csrf
             @method('PUT')
 
