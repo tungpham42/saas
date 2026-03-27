@@ -309,8 +309,8 @@ function chatManager() {
         isLive: {{ $isLive ? 'true' : 'false' }},
 
         // Session data
-        sessions: [], // Full session data array
-        displayedSessions: [], // Sessions to display (sorted)
+        sessions: [],
+        displayedSessions: [],
         sessionMessageCounts: new Map(),
         newSessionsCount: 0,
         userManuallySelectedSession: {{ $selectedSession ? 'true' : 'false' }},
@@ -1009,7 +1009,7 @@ function chatManager() {
             url.searchParams.delete('session_id');
             window.location.href = url.toString();
         }
-    }
+    };
 }
 </script>
 @endpush
