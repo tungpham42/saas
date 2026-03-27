@@ -412,10 +412,11 @@ function chatManager() {
             }
             this.pollingInterval = setInterval(() => {
                 this.pollMessages();
-                if (this.isLive) {
+
+                if (this.isLive && !this.isPolling) {
                     this.loadSessionsList();
                 }
-            }, 2000);
+            }, 1500);
         },
 
         stopPolling() {
@@ -431,6 +432,10 @@ function chatManager() {
                 const response = await fetch(url);
                 const data = await response.json();
 
+                data.sessions.sort((a, b) => {
+                    return new Date(b.last_time) - new Date(a.last_time);
+                });
+
                 if (data.sessions && data.sessions.length > 0) {
                     const newSessions = this.detectNewSessions(data.sessions);
                     this.currentSessions = data.sessions;
@@ -444,6 +449,7 @@ function chatManager() {
 
                         // Only auto-jump if the user hasn't manually selected a different session
                         if (!this.userManuallySelectedSession) {
+                            const latestSession = data.sessions[0];
                             this.jumpToSession(latestSession.session_id);
                         }
                     }
@@ -484,10 +490,21 @@ function chatManager() {
 
                 // 👉 Highlight active session
                 if (session.session_id === this.selectedSessionId) {
-                    el.classList.add('bg-amber-100', 'dark:bg-gray-700', 'ring-2', 'ring-amber-400');
+                    // reset class trước
+                    el.classList.remove('new-session', 'bg-amber-100', 'dark:bg-gray-700', 'ring-2', 'ring-amber-400', 'animate-pulse', 'bg-green-50', 'dark:bg-green-900/20');
+
+                    // highlight selected
+                    if (session.session_id === this.selectedSessionId) {
+                        el.classList.add('bg-amber-100', 'dark:bg-gray-700', 'ring-2', 'ring-amber-400');
+                    }
+
+                    // 🔥 highlight NEW session
+                    if (!this.knownSessionIds.has(session.session_id)) {
+                        el.classList.add('new-session', 'animate-pulse', 'bg-green-50', 'dark:bg-green-900/20');
+                    }
                 }
 
-                container.insertBefore(el, sentinel);
+                container.prepend(el);
             });
         },
 
@@ -579,6 +596,11 @@ function chatManager() {
             const safeId = CSS.escape(session.session_id);
             const sessionItem = document.querySelector(`[data-session-id="${safeId}"]`);
             if (sessionItem) {
+                // 🔥 move session lên top khi có tin mới
+                const container = document.getElementById('sessions-list');
+                if (sessionItem && container) {
+                    container.prepend(sessionItem);
+                }
                 const timeSpan = sessionItem.querySelector('.session-last-time span:first-child');
                 const countSpan = sessionItem.querySelector('.session-msg-count span:first-child');
                 if (timeSpan) timeSpan.textContent = new Date(session.last_time).toLocaleString();

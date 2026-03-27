@@ -363,6 +363,15 @@
             color: #f59e0b;
             font-size: 12px;
         }
+
+        @keyframes flashNew {
+            0% { background-color: #dcfce7; }
+            100% { background-color: transparent; }
+        }
+
+        .new-session {
+            animation: flashNew 1s ease-in-out;
+        }
     </style>
 
     @stack('styles')
