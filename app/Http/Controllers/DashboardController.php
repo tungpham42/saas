@@ -62,7 +62,8 @@ class DashboardController extends Controller
         $chartData = $last30Days->map(function($date) use ($messagesByDay) {
             return [
                 'date' => $date,
-                'messages' => $messagesByDay[$date] ?? 0
+                'messages' => $messagesByDay[$date] ?? 0,
+                'users' => User::whereDate('created_at', $date)->count(),
             ];
         });
 

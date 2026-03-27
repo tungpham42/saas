@@ -254,7 +254,7 @@
             labels: @json($chartData->pluck('date')),
             datasets: [{
                 label: 'New Members',
-                data: @json($chartData->pluck('messages')),
+                data: @json($chartData->pluck('users')),
                 backgroundColor: 'rgba(245, 158, 11, 0.8)',
                 borderRadius: 8
             }]
