@@ -214,7 +214,7 @@ function chatManager() {
         isLive: {{ $isLive ? 'true' : 'false' }},
         currentSessions: [],
         knownSessionIds: new Set(),
-        userManuallySelectedSession: false, // Track if user manually selected a session
+        userManuallySelectedSession: {{ $selectedSession ? 'true' : 'false' }},
 
         // Pagination properties
         sessionsPage: 1,
@@ -230,13 +230,33 @@ function chatManager() {
         loadingOlderMessages: false,
 
         init() {
+            // Pre-populate known sessions from existing HTML to prevent "all sessions are new" bug on first load
+            document.querySelectorAll('#sessions-list [data-session-id]').forEach(el => {
+                this.knownSessionIds.add(el.getAttribute('data-session-id'));
+            });
+
+            // Use event delegation for clicking sessions, preventing duplicate event listeners
+            const sessionsListContainer = document.getElementById('sessions-list');
+            if (sessionsListContainer) {
+                sessionsListContainer.addEventListener('click', (e) => {
+                    const item = e.target.closest('[data-session-id]');
+                    // Make sure we didn't click an unrelated anchor tag inside the item
+                    if (item && !e.target.closest('a')) {
+                        e.preventDefault();
+                        this.userManuallySelectedSession = true;
+                        this.selectSession(item.getAttribute('data-session-id'));
+                    }
+                });
+            }
+
             if (this.selectedSessionId) {
                 this.startPolling();
                 this.checkForMoreMessages();
             }
+
             this.scrollToBottom();
             this.loadSessionsList();
-            this.updateKnownSessions();
+            // this.updateKnownSessions(); <-- Remove this line. It's handled safely now.
             this.setupAutoScroll();
             this.setupInfiniteScroll();
             this.setupMessageScrollPagination();
@@ -290,12 +310,6 @@ function chatManager() {
                         const tempDiv = document.createElement('div');
                         tempDiv.innerHTML = session.html;
                         const sessionElement = tempDiv.firstElementChild;
-
-                        sessionElement.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            this.userManuallySelectedSession = true; // Mark as manual selection
-                            this.selectSession(session.session_id);
-                        });
 
                         container.insertBefore(sessionElement, sentinel);
                     });
@@ -427,9 +441,9 @@ function chatManager() {
                         const latestSession = data.sessions[0];
 
                         // Only auto-jump if the user hasn't manually selected a different session
-                        // if (!this.userManuallySelectedSession) {
-                        //     this.jumpToSession(latestSession.session_id);
-                        // }
+                        if (!this.userManuallySelectedSession) {
+                            this.jumpToSession(latestSession.session_id);
+                        }
                     }
 
                     this.updateKnownSessions();
@@ -452,32 +466,22 @@ function chatManager() {
         },
 
         renderSessionsList(sessions) {
-            const container = document.getElementById('sessions-list');
-            if (!container) return;
+            sessions.forEach((session) => {
+                try {
+                    // Use CSS.escape to safely query IDs that might contain special characters
+                    const safeId = CSS.escape(session.session_id);
+                    const item = document.querySelector(`[data-session-id="${safeId}"]`);
 
-            // Get existing session items and add click handlers to new ones
-            const existingItems = container.querySelectorAll('.session-item');
-
-            if (existingItems.length > 0 && sessions.length > 0) {
-                // Update only the existing items' data (like msg count, last time)
-                sessions.slice(0, existingItems.length).forEach((session, index) => {
-                    const item = existingItems[index];
                     if (item) {
                         const timeSpan = item.querySelector('.session-last-time span:first-child');
                         const countSpan = item.querySelector('.session-msg-count span:first-child');
                         if (timeSpan) timeSpan.textContent = new Date(session.last_time).toLocaleString();
                         if (countSpan) countSpan.textContent = session.msgs;
-
-                        // Ensure click handler is attached
-                        item.removeEventListener('click', this.handleSessionClick);
-                        item.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            this.userManuallySelectedSession = true;
-                            this.selectSession(session.session_id);
-                        });
                     }
-                });
-            }
+                } catch (e) {
+                    console.warn("Could not update session item", e);
+                }
+            });
         },
 
         renderEmptySessions() {
@@ -565,7 +569,8 @@ function chatManager() {
         updateSessionSidebar(session) {
             if (!session || session.session_id !== this.selectedSessionId) return;
 
-            const sessionItem = document.querySelector(`[data-session-id="${session.session_id}"]`);
+            const safeId = CSS.escape(session.session_id);
+            const sessionItem = document.querySelector(`[data-session-id="${safeId}"]`);
             if (sessionItem) {
                 const timeSpan = sessionItem.querySelector('.session-last-time span:first-child');
                 const countSpan = sessionItem.querySelector('.session-msg-count span:first-child');
