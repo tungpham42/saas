@@ -62,7 +62,9 @@
             right: {!! $posRight !!},
             left: {!! $posLeft !!}
         },
-        triggerIcon: `{!! $triggerIcon !!}`,
+        icon_type: `{!! $icon_type ?? 'emoji' !!}`,
+        ui_trigger_icon: `{!! $ui_trigger_icon ?? '💬' !!}`,
+        ui_trigger_custom_icon: `{!! !empty($ui_trigger_custom_icon) ? asset($ui_trigger_custom_icon) : '' !!}`,
         triggerBgCss: `{!! $triggerBgCss !!}`,
         triggerRadius: {!! $triggerRadius !!},
         clearOnClose: {!! $clearOnClose !!},
@@ -769,7 +771,14 @@
         // Create trigger button
         triggerButton = document.createElement('button');
         triggerButton.className = 'ai-chat-trigger';
-        triggerButton.innerHTML = settings.triggerIcon;
+
+        // Handle icon display based on icon_type
+        if (settings.icon_type === 'custom' && settings.ui_trigger_custom_icon) {
+            triggerButton.innerHTML = `<img src="${settings.ui_trigger_custom_icon}" alt="Chat Icon">`;
+        } else {
+            triggerButton.innerHTML = settings.ui_trigger_icon || '💬';
+        }
+
         triggerButton.setAttribute('aria-label', 'Open chat');
         document.body.appendChild(triggerButton);
 
