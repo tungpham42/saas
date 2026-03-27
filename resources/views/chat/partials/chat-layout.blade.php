@@ -432,10 +432,6 @@ function chatManager() {
                 const response = await fetch(url);
                 const data = await response.json();
 
-                data.sessions.sort((a, b) => {
-                    return new Date(b.last_time) - new Date(a.last_time);
-                });
-
                 if (data.sessions && data.sessions.length > 0) {
                     const newSessions = this.detectNewSessions(data.sessions);
                     this.currentSessions = data.sessions;
@@ -443,9 +439,6 @@ function chatManager() {
 
                     // Auto-jump to new session if in live mode
                     if (this.isLive && newSessions.length > 0) {
-                        data.sessions.sort((a, b) => {
-                            return new Date(b.last_time) - new Date(a.last_time);
-                        });
 
                         // Only auto-jump if the user hasn't manually selected a different session
                         if (!this.userManuallySelectedSession) {
