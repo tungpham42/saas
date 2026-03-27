@@ -24,7 +24,7 @@ class CheckEndedChats extends Command
 
         $this->notificationService->processEndedChats();
 
-        $this->info('Notification check completed.');
+        $this->info('Finished checking ended chat sessions.');
 
         return Command::SUCCESS;
     }
