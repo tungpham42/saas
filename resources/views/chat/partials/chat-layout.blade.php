@@ -40,7 +40,7 @@
                     </form>
                     @endif
 
-                    <form method="GET" class="mt-3 space-y-2" @submit.prevent="filterSessions">
+                    <form method="GET" class="mt-3 space-y-2" @submit.prevent="applyDateFilter">
                         <input type="hidden" name="tab" value="{{ $isLive ? 'live-chat' : 'history' }}">
                         <div class="relative">
                             <i class="fas fa-calendar-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-amber-400 text-sm"></i>
@@ -206,25 +206,117 @@ function chatManager() {
         selectedSessionId: '{{ $selectedSession }}',
         currentBotId: {{ $bot->id }},
         isLive: {{ $isLive ? 'true' : 'false' }},
+        currentSessions: [],
 
         init() {
             if (this.selectedSessionId) {
                 this.startPolling();
             }
             this.scrollToBottom();
+            this.loadSessionsList();
         },
 
         startPolling() {
             if (this.pollingInterval) {
                 clearInterval(this.pollingInterval);
             }
-            this.pollingInterval = setInterval(() => this.pollMessages(), 2000);
+            this.pollingInterval = setInterval(() => {
+                this.pollMessages();
+                if (this.isLive) {
+                    this.loadSessionsList();
+                }
+            }, 2000);
         },
 
         stopPolling() {
             if (this.pollingInterval) {
                 clearInterval(this.pollingInterval);
                 this.pollingInterval = null;
+            }
+        },
+
+        async loadSessionsList() {
+            try {
+                const url = `{{ route('bots.sessions-list', $bot) }}?date_preset=${encodeURIComponent(this.datePreset || '')}&filter_date=${encodeURIComponent(this.filterDate || '')}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.sessions && data.sessions.length > 0) {
+                    this.currentSessions = data.sessions;
+                    this.renderSessionsList(data.sessions);
+                } else {
+                    this.renderEmptySessions();
+                }
+            } catch (error) {
+                console.error('Load sessions list error:', error);
+            }
+        },
+
+        renderSessionsList(sessions) {
+            const container = document.getElementById('sessions-list');
+            if (!container) return;
+
+            let html = '';
+            sessions.forEach(session => {
+                const isActive = this.selectedSessionId === session.session_id;
+                const lastTime = new Date(session.last_time);
+                const formattedTime = lastTime.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+                html += `
+                    <a href="#"
+                       data-session-id="${this.escapeHtml(session.session_id)}"
+                       class="session-item block p-3 rounded-xl transition-all ${isActive ? 'gradient-warm text-amber-900 shadow-md' : 'hover:bg-amber-50 dark:hover:bg-gray-800'}">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-lg">${this.escapeHtml(session.icon)}</span>
+                                    <span class="font-mono text-xs truncate ${isActive ? 'text-amber-900' : 'text-amber-600 dark:text-amber-400'}">
+                                        ${this.escapeHtml(session.session_id.substring(0, 20))}...
+                                    </span>
+                                </div>
+                                ${session.channel_name ? `
+                                <p class="text-xs ${isActive ? 'text-amber-800/70' : 'text-amber-400'} mt-1">
+                                    <i class="fas fa-link mr-1"></i>${this.escapeHtml(session.channel_name)}
+                                </p>
+                                ` : ''}
+                                <div class="flex items-center gap-3 mt-2 text-xs ${isActive ? 'text-amber-800/70' : 'text-amber-400'}">
+                                    <span>
+                                        <i class="far fa-clock mr-1"></i>${formattedTime}
+                                    </span>
+                                    <span>
+                                        <i class="fas fa-comment mr-1"></i>${session.msgs} msgs
+                                    </span>
+                                </div>
+                            </div>
+                            ${this.isLive && !session.has_recent_admin ? `
+                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
+                            ` : ''}
+                        </div>
+                    </a>
+                `;
+            });
+
+            container.innerHTML = html;
+
+            // Re-attach event listeners
+            container.querySelectorAll('[data-session-id]').forEach(link => {
+                const sessionId = link.dataset.sessionId;
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.selectSession(sessionId);
+                });
+            });
+        },
+
+        renderEmptySessions() {
+            const container = document.getElementById('sessions-list');
+            if (container) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-amber-400">
+                        <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
+                        <p>No conversations yet</p>
+                    </div>
+                `;
             }
         },
 
@@ -272,22 +364,16 @@ function chatManager() {
         updateSessionSidebar(session) {
             if (!session || session.session_id !== this.selectedSessionId) return;
 
-            const links = document.querySelectorAll('[data-session-id]');
-            links.forEach(link => {
-                if (link.dataset.sessionId === session.session_id) {
-                    const msgCountSpan = link.querySelector('.session-msg-count');
-                    if (msgCountSpan) {
-                        msgCountSpan.innerHTML = `<i class="fas fa-comment mr-1"></i>${session.msgs} msgs`;
-                    }
+            const sessionIndex = this.currentSessions.findIndex(s => s.session_id === session.session_id);
+            if (sessionIndex !== -1) {
+                this.currentSessions[sessionIndex] = {
+                    ...this.currentSessions[sessionIndex],
+                    msgs: session.msgs,
+                    last_time: session.last_time
+                };
+            }
 
-                    const timeSpan = link.querySelector('.session-last-time');
-                    if (timeSpan && session.last_time) {
-                        const date = new Date(session.last_time);
-                        const formattedTime = date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-                        timeSpan.innerHTML = `<i class="far fa-clock mr-1"></i>${formattedTime}`;
-                    }
-                }
-            });
+            this.renderSessionsList(this.currentSessions);
         },
 
         async sendReply() {
@@ -332,6 +418,8 @@ function chatManager() {
                     if (data.session_stats) {
                         this.updateSessionSidebar(data.session_stats);
                     }
+
+                    await this.loadSessionsList();
                 }
 
                 this.replyMessage = '';
@@ -391,11 +479,8 @@ function chatManager() {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Remove session from sidebar
-                    const sessionLink = document.querySelector(`[data-session-id="${sessionId}"]`);
-                    if (sessionLink) sessionLink.remove();
+                    await this.loadSessionsList();
 
-                    // Clear current view if it was the cleared session
                     if (this.selectedSessionId === sessionId) {
                         this.stopPolling();
                         this.selectedSessionId = null;
@@ -445,18 +530,8 @@ function chatManager() {
                 const data = await response.json();
 
                 if (data.success) {
-                    // Clear sessions list
-                    const sessionsList = document.getElementById('sessions-list');
-                    if (sessionsList) {
-                        sessionsList.innerHTML = `
-                            <div class="p-8 text-center text-amber-400">
-                                <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
-                                <p>No conversations yet</p>
-                            </div>
-                        `;
-                    }
+                    await this.loadSessionsList();
 
-                    // Clear messages area
                     this.stopPolling();
                     this.selectedSessionId = null;
                     const messagesContainer = document.getElementById('chat-messages');

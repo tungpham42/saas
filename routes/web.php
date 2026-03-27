@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/history', [ChatController::class, 'history'])->name('bots.history');
         Route::post('/send-reply', [ChatController::class, 'sendAdminReply'])->name('bots.send-reply');
         Route::get('/poll', [ChatController::class, 'pollMessages'])->name('bots.poll');
+        Route::get('/sessions-list', [ChatController::class, 'getSessionsList'])->name('bots.sessions-list');
         Route::post('/clear-session', [ChatController::class, 'clearSession'])->name('bots.clear-session');
         Route::post('/clear-all-chats', [ChatController::class, 'clearAllChats'])->name('bots.clear-all-chats');
         Route::get('/export-session', [ChatController::class, 'exportSession'])->name('bots.export-session');
