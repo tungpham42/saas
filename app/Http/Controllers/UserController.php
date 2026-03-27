@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::where('role', 'user')
+        $users = User::where('user_role', 'user')
             ->withCount('bots')
             ->orderBy('created_at', 'desc')
             ->paginate(20);

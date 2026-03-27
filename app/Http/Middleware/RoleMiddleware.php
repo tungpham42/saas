@@ -23,7 +23,7 @@ class RoleMiddleware
         $user = Auth::user();
 
         foreach ($roles as $role) {
-            if ($user->role === $role) {
+            if ($user->user_role === $role) {
                 return $next($request);
             }
         }

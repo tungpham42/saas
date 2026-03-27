@@ -106,7 +106,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Admin Only Routes
-    Route::middleware('role:admin')->group(function () {
+    Route::middleware('user_role:admin')->group(function () {
         Route::resource('users', UserController::class)->except(['show']);
         Route::get('admin/dashboard', [DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
     });

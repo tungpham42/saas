@@ -14,7 +14,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'user_role',
         'bot_limit',
         'paypal_sub_id',
         'paypal_sub_status',
@@ -39,7 +39,12 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->user_role === 'admin';
+    }
+
+    public function isUser(): bool
+    {
+        return $this->user_role === 'user';
     }
 
     public function canCreateBot(): bool

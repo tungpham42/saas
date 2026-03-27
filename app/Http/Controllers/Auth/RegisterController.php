@@ -36,7 +36,7 @@ class RegisterController extends Controller
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => 'user',
+            'user_role' => 'user',
             'bot_limit' => 1, // Default 1 bot for free plan
             'email_verified_at' => null,
             'remember_token' => Str::random(60),

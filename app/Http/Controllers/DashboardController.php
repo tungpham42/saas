@@ -25,7 +25,7 @@ class DashboardController extends Controller
 
     public function adminDashboard()
     {
-        $totalUsers = User::where('role', 'user')->count();
+        $totalUsers = User::where('user_role', 'user')->count();
         $totalBots = Bot::count();
         $totalMessages = ChatLog::count();
         $totalLeads = Lead::count();
@@ -38,7 +38,7 @@ class DashboardController extends Controller
             $totalMonthlyRevenue += $additionalBots * 2;
         }
 
-        $recentUsers = User::where('role', 'user')
+        $recentUsers = User::where('user_role', 'user')
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get();

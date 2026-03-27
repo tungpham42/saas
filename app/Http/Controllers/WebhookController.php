@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Bot;
 use App\Models\Channel;
+use App\Models\ChatLog;
 use App\Services\ChannelService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
