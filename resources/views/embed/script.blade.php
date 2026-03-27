@@ -496,7 +496,7 @@
                         addMessageToChat(message.content, message.role === 'user');
                         lastMessageId = message.id;
 
-                        // Check if we have admin messages (human takeover)
+                        // Check if we have admin messages (human takeover) - silently set flag without notification
                         if (message.role === 'admin') {
                             isHumanMode = true;
                             // Remove typing indicator if it exists
@@ -566,8 +566,8 @@
 
             if (data.is_human_mode === true) {
                 isHumanMode = true;
-                // Show a notification that an admin is now handling the chat
-                addMessageToChat('An admin has taken over this conversation. Your messages will be answered by a human agent.', false);
+                // Silently set human mode without showing any notification message
+                // No message added to chat
             }
 
             return data;
