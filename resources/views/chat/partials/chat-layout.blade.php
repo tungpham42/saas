@@ -1,8 +1,3 @@
-@extends('layouts.app')
-
-@section('title', ($isLive ? 'Live Chat' : 'Chat History') . ' - ' . $bot->name)
-
-@section('content')
 <div class="space-y-4">
     <div class="flex items-center gap-4 animate-gentle">
         <a href="{{ route('bots.show', $bot) }}" class="text-amber-600 hover:text-amber-700 dark:text-amber-400 transition">
@@ -30,16 +25,6 @@
                             <i class="fas fa-comments text-amber-500"></i>
                             <span>{{ $isLive ? '💬 Live Chats' : '📜 Chat History' }}</span>
                         </h3>
-
-                        @if($isLive)
-                        <button @click="toggleAutoJump()"
-                                :class="autoJumpEnabled ? 'text-green-500' : 'text-gray-400'"
-                                class="text-sm transition"
-                                title="Auto-jump to new conversations">
-                            <i class="fas fa-arrow-right-to-bracket"></i>
-                            <span class="ml-1 text-xs">Auto</span>
-                        </button>
-                        @endif
                     </div>
 
                     @if(!$isLive)
@@ -224,7 +209,6 @@ function chatManager() {
         isLive: {{ $isLive ? 'true' : 'false' }},
         currentSessions: [],
         knownSessionIds: new Set(),
-        autoJumpEnabled: true,
 
         // Pagination properties
         sessionsPage: 1,
@@ -253,7 +237,6 @@ function chatManager() {
         },
 
         checkForMoreMessages() {
-            // Check if there are more messages to load
             const totalMessages = {{ $messages ? $messages->count() : 0 }};
             this.hasMoreMessages = totalMessages >= this.messagesPerPage;
             this.messagesPage = 1;
@@ -432,7 +415,8 @@ function chatManager() {
                     this.currentSessions = data.sessions;
                     this.renderSessionsList(data.sessions);
 
-                    if (this.isLive && this.autoJumpEnabled && newSessions.length > 0) {
+                    // Auto-jump to new session if in live mode
+                    if (this.isLive && newSessions.length > 0) {
                         const latestSession = data.sessions[0];
                         this.jumpToSession(latestSession.session_id);
                     }
@@ -505,19 +489,6 @@ function chatManager() {
                 position: 'top-end',
                 background: '#fef3c7',
                 iconColor: '#f59e0b'
-            });
-        },
-
-        toggleAutoJump() {
-            this.autoJumpEnabled = !this.autoJumpEnabled;
-            Swal.fire({
-                icon: 'success',
-                title: this.autoJumpEnabled ? 'Auto-jump Enabled' : 'Auto-jump Disabled',
-                text: this.autoJumpEnabled ? 'Will jump to new conversations automatically' : 'Will stay on current conversation',
-                toast: true,
-                timer: 2000,
-                showConfirmButton: false,
-                position: 'top-end'
             });
         },
 
@@ -814,4 +785,3 @@ function chatManager() {
 }
 </script>
 @endpush
-@endsection
