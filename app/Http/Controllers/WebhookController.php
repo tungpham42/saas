@@ -421,4 +421,42 @@ class WebhookController extends Controller
             'details' => $failureReasons
         ], 403);
     }
+
+    /**
+     * Check session status to see if it's in human takeover mode
+     */
+    public function sessionStatus(Request $request)
+    {
+        $apiKey = $request->query('api_key');
+        $sessionId = $request->query('session_id');
+
+        if (!$apiKey || !$sessionId) {
+            return response()->json(['error' => 'Missing required parameters'], 400);
+        }
+
+        $bot = Bot::where('api_key', $apiKey)->first();
+
+        if (!$bot) {
+            return response()->json(['error' => 'Invalid API key'], 401);
+        }
+
+        // Check if there are any admin messages in this session
+        $hasAdminMessages = ChatLog::where('bot_id', $bot->id)
+            ->where('session_id', $sessionId)
+            ->where('role', 'admin')
+            ->exists();
+
+        // Check if there's an admin currently active (within last 10 minutes)
+        $recentAdminMessage = ChatLog::where('bot_id', $bot->id)
+            ->where('session_id', $sessionId)
+            ->where('role', 'admin')
+            ->where('created_at', '>=', now()->subMinutes(10))
+            ->exists();
+
+        return response()->json([
+            'is_human_mode' => $hasAdminMessages,
+            'has_recent_admin' => $recentAdminMessage,
+            'session_id' => $sessionId
+        ]);
+    }
 }

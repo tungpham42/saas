@@ -36,6 +36,7 @@
     let pollInterval = null;
     let isLoading = false;
     let librariesLoaded = false;
+    let isHumanMode = false; // Track if we're in human takeover mode
 
     // DOM elements
     let triggerButton = null;
@@ -428,25 +429,51 @@
         isLoading = true;
 
         try {
-            const response = await fetch(`${API_BASE}/chat`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    api_key: API_KEY,
-                    session_id: sessionId,
-                    message: message
-                })
-            });
+            // If we're in human mode, we don't need to send to AI
+            // The message will be stored and an admin will respond
+            if (isHumanMode) {
+                // Store the message via API (but don't expect AI response)
+                const response = await fetch(`${API_BASE}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        api_key: API_KEY,
+                        session_id: sessionId,
+                        message: message,
+                        role: 'user' // Explicitly mark as user message
+                    })
+                });
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                return null; // No immediate response
+            } else {
+                // Normal AI mode
+                const response = await fetch(`${API_BASE}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        api_key: API_KEY,
+                        session_id: sessionId,
+                        message: message
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                return data.answer || 'Sorry, I encountered an error.';
             }
-
-            const data = await response.json();
-            return data.answer || 'Sorry, I encountered an error.';
         } catch (error) {
             console.error('Error sending message:', error);
             return 'Sorry, I encountered an error. Please try again later.';
@@ -455,7 +482,7 @@
         }
     }
 
-    // Poll for new messages (Fix duplicate: add &role=admin)
+    // Poll for new messages
     async function pollMessages() {
         if (!isOpen) return;
 
@@ -468,6 +495,13 @@
                     if (message.id > lastMessageId) {
                         addMessageToChat(message.content, message.role === 'user');
                         lastMessageId = message.id;
+
+                        // Check if we have admin messages (human takeover)
+                        if (message.role === 'admin') {
+                            isHumanMode = true;
+                            // Remove typing indicator if it exists
+                            removeTyping();
+                        }
                     }
                 });
             }
@@ -501,6 +535,9 @@
     function showTyping() {
         if (!messagesContainer) return;
 
+        // Remove existing typing indicator first
+        removeTyping();
+
         const typingDiv = document.createElement('div');
         typingDiv.className = 'ai-chat-message bot';
         typingDiv.id = 'ai-typing-indicator';
@@ -521,6 +558,25 @@
         if (typing) typing.remove();
     }
 
+    // Check session status
+    async function checkSessionStatus() {
+        try {
+            const response = await fetch(`${API_BASE}/session-status?api_key=${API_KEY}&session_id=${sessionId}`);
+            const data = await response.json();
+
+            if (data.is_human_mode === true) {
+                isHumanMode = true;
+                // Show a notification that an admin is now handling the chat
+                addMessageToChat('An admin has taken over this conversation. Your messages will be answered by a human agent.', false);
+            }
+
+            return data;
+        } catch (error) {
+            console.error('Error checking session status:', error);
+            return null;
+        }
+    }
+
     // Handle sending message
     async function handleSendMessage() {
         if (!inputField) return;
@@ -532,12 +588,28 @@
         inputField.disabled = true;
         sendButton.disabled = true;
 
-        addMessageToChat(message, true);
-        showTyping();
+        if (isHumanMode) {
+            // In human mode, just send the message and wait for admin response
+            addMessageToChat(message, true);
+            showTyping();
+            await sendMessage(message);
 
-        const response = await sendMessage(message);
-        removeTyping();
-        addMessageToChat(response, false);
+            // Set timeout to remove typing indicator if no response
+            setTimeout(() => {
+                removeTyping();
+            }, 30000); // Remove typing indicator after 30 seconds
+        } else {
+            // Normal AI mode
+            addMessageToChat(message, true);
+            showTyping();
+
+            const response = await sendMessage(message);
+            removeTyping();
+
+            if (response) {
+                addMessageToChat(response, false);
+            }
+        }
 
         inputField.disabled = false;
         sendButton.disabled = false;
@@ -561,6 +633,9 @@
         if (messagesContainer.children.length === 0) {
             addMessageToChat(settings.welcomeMsg, false);
         }
+
+        // Check if this session is in human takeover mode
+        await checkSessionStatus();
 
         // Setup event listeners
         if (inputField) {
@@ -715,14 +790,19 @@
         document.body.appendChild(chatWindow);
 
         // Toggle chat
-        triggerButton.addEventListener('click', () => {
+        triggerButton.addEventListener('click', async () => {
             isOpen = !isOpen;
             if (isOpen) {
                 chatWindow.classList.remove('closed');
+
+                // Reset human mode flag when opening new chat
+                isHumanMode = false;
+                lastMessageId = 0;
+
                 if (settings.preChatEnabled && !preChatData) {
                     showPreChatForm();
                 } else {
-                    initChat();
+                    await initChat();
                 }
             } else {
                 chatWindow.classList.add('closed');
