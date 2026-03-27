@@ -38,6 +38,12 @@ class ChatController extends Controller
 
         // Get selected session messages
         $selectedSession = request('session_id');
+
+        // NEW LOGIC: Auto-select latest session for Live Chat if none is specifically requested
+        if (!$selectedSession && $sessions->isNotEmpty()) {
+            $selectedSession = $sessions->first()->session_id;
+        }
+
         $messages = [];
 
         if ($selectedSession) {
@@ -122,7 +128,9 @@ class ChatController extends Controller
             return $session->last_time;
         })->take($limit)->values();
 
+        $isLive = filter_var($request->query('is_live', true), FILTER_VALIDATE_BOOLEAN);
         $formattedSessions = [];
+
         foreach ($sessions as $session) {
             $sessionInfo = $this->parseSessionId($session->session_id, $bot);
             $formattedSessions[] = [
@@ -132,7 +140,14 @@ class ChatController extends Controller
                 'has_recent_admin' => $this->hasRecentAdminReply($bot, $session->session_id),
                 'channel_name' => $sessionInfo['channel_name'] ?? null,
                 'icon' => $sessionInfo['icon'] ?? '💬',
-                'channel_type' => $sessionInfo['type'] ?? 'web'
+                'channel_type' => $sessionInfo['type'] ?? 'web',
+                'html' => view('chat.partials.session-item', [
+                    'session' => $session,
+                    'sessionInfo' => $sessionInfo,
+                    'isActive' => false, // Will become active upon redirect
+                    'bot' => $bot,
+                    'isLive' => $isLive
+                ])->render()
             ];
         }
 

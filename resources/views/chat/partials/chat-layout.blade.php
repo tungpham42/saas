@@ -214,7 +214,7 @@ function chatManager() {
         isLive: {{ $isLive ? 'true' : 'false' }},
         currentSessions: [],
         knownSessionIds: new Set(),
-        userManuallySelectedSession: {{ $selectedSession ? 'true' : 'false' }},
+        userManuallySelectedSession: {{ (request()->has('session_id') && !request()->has('auto')) ? 'true' : 'false' }},
 
         // Pagination properties
         sessionsPage: 1,
@@ -427,7 +427,7 @@ function chatManager() {
 
         async loadSessionsList() {
             try {
-                const url = `{{ route('bots.sessions-list', $bot) }}?date_preset=${encodeURIComponent(this.datePreset || '')}&filter_date=${encodeURIComponent(this.filterDate || '')}`;
+                const url = `{{ route('bots.sessions-list', $bot) }}?is_live=${this.isLive}&date_preset=${encodeURIComponent(this.datePreset || '')}&filter_date=${encodeURIComponent(this.filterDate || '')}`;
                 const response = await fetch(url);
                 const data = await response.json();
 
@@ -466,20 +466,29 @@ function chatManager() {
         },
 
         renderSessionsList(sessions) {
+            const container = document.getElementById('sessions-list');
+            if (!container) return;
+
             sessions.forEach((session) => {
                 try {
-                    // Use CSS.escape to safely query IDs that might contain special characters
                     const safeId = CSS.escape(session.session_id);
                     const item = document.querySelector(`[data-session-id="${safeId}"]`);
 
                     if (item) {
+                        // Update existing UI data
                         const timeSpan = item.querySelector('.session-last-time span:first-child');
                         const countSpan = item.querySelector('.session-msg-count span:first-child');
                         if (timeSpan) timeSpan.textContent = new Date(session.last_time).toLocaleString();
                         if (countSpan) countSpan.textContent = session.msgs;
+                    } else if (session.html) {
+                        // Prepend newly arrived session to the list
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = session.html;
+                        const sessionElement = tempDiv.firstElementChild;
+                        container.insertBefore(sessionElement, container.firstChild);
                     }
                 } catch (e) {
-                    console.warn("Could not update session item", e);
+                    console.warn("Could not update/insert session item", e);
                 }
             });
         },
@@ -499,12 +508,16 @@ function chatManager() {
         async jumpToSession(sessionId) {
             if (sessionId === this.selectedSessionId) return;
             this.showNewSessionNotification(sessionId);
-            this.selectSession(sessionId);
 
-            // Reset manual selection flag after 5 seconds to allow future auto-jumps
-            setTimeout(() => {
-                this.userManuallySelectedSession = false;
-            }, 5000);
+            this.stopPolling();
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('session_id', sessionId);
+            url.searchParams.set('auto', '1'); // <-- This prevents the manual-lockout bug
+            if (this.datePreset) url.searchParams.set('date_preset', this.datePreset);
+            if (this.filterDate) url.searchParams.set('filter_date', this.filterDate);
+
+            window.location.href = url.toString();
         },
 
         showNewSessionNotification(sessionId) {
