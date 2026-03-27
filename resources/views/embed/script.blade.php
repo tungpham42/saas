@@ -1,4 +1,3 @@
-<script>
 (function() {
     const API_KEY = '{{ $apiKey }}';
     const API_URL = '{{ url('/') }}';
@@ -402,4 +401,3 @@
     bootWidget();
 
 })();
-</script>
