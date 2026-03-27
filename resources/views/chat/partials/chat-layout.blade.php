@@ -429,6 +429,9 @@ function chatManager() {
                         // Only auto-jump if the user hasn't manually selected a different session
                         if (!this.userManuallySelectedSession) {
                             this.jumpToSession(latestSession.session_id);
+                        } else {
+                            // Just show notification without jumping
+                            this.showNewSessionNotification(latestSession.session_id, true);
                         }
                     }
 
@@ -494,19 +497,103 @@ function chatManager() {
 
         async jumpToSession(sessionId) {
             if (sessionId === this.selectedSessionId) return;
-            this.showNewSessionNotification(sessionId);
-            this.selectSession(sessionId);
 
-            // Reset manual selection flag after 5 seconds to allow future auto-jumps
+            // Show notification
+            this.showNewSessionNotification(sessionId, false);
+
+            // Load session content without page reload for auto-jump
+            await this.loadSessionContent(sessionId);
+
+            // Reset manual selection flag after a delay to allow future auto-jumps
             setTimeout(() => {
                 this.userManuallySelectedSession = false;
             }, 5000);
         },
 
-        showNewSessionNotification(sessionId) {
-            const message = this.userManuallySelectedSession ?
-                'New chat available (staying on current view)' :
-                'Auto-jumping to the latest chat';
+        async loadSessionContent(sessionId) {
+            try {
+                // Show loading state
+                const messagesContainer = document.getElementById('chat-messages');
+                if (messagesContainer) {
+                    messagesContainer.innerHTML = `
+                        <div class="flex items-center justify-center h-full">
+                            <div class="loading-spinner mx-auto"></div>
+                        </div>
+                    `;
+                }
+
+                const url = `{{ route('bots.get-session-messages', $bot) }}?session_id=${encodeURIComponent(sessionId)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update selected session ID
+                    this.selectedSessionId = sessionId;
+
+                    // Update messages container
+                    const container = document.getElementById('chat-messages');
+                    if (container) {
+                        if (data.messages && data.messages.length > 0) {
+                            container.innerHTML = data.messages.map(msg => this.renderMessage(msg)).join('');
+                            this.lastMsgId = data.messages[data.messages.length - 1]?.id || 0;
+                        } else {
+                            container.innerHTML = `
+                                <div id="empty-state" class="flex-1 flex flex-col items-center justify-center h-full opacity-80">
+                                    <div class="text-6xl mb-4">💭</div>
+                                    <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">Start the Conversation</h3>
+                                    <p class="text-amber-500 dark:text-amber-400 mt-2">Be the first to say hello!</p>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    // Update URL without page reload
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('session_id', sessionId);
+                    window.history.pushState({}, '', url);
+
+                    // Update active state in sidebar
+                    this.updateActiveSessionInSidebar(sessionId);
+
+                    // Restart polling for new session
+                    this.stopPolling();
+                    this.startPolling();
+                    this.scrollToBottom();
+                }
+            } catch (error) {
+                console.error('Load session content error:', error);
+                const container = document.getElementById('chat-messages');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="flex items-center justify-center h-full text-red-500">
+                            <p>Failed to load messages. Please try again.</p>
+                        </div>
+                    `;
+                }
+            }
+        },
+
+        updateActiveSessionInSidebar(sessionId) {
+            // Remove active class from all session items
+            document.querySelectorAll('.session-item').forEach(item => {
+                item.classList.remove('bg-amber-100', 'dark:bg-amber-900/30', 'border-amber-200');
+                const link = item.querySelector('a');
+                if (link) link.classList.remove('border-amber-300');
+            });
+
+            // Add active class to the selected session
+            const activeItem = document.querySelector(`[data-session-id="${sessionId}"]`);
+            if (activeItem) {
+                activeItem.classList.add('bg-amber-100', 'dark:bg-amber-900/30', 'border-amber-200');
+                const link = activeItem.querySelector('a');
+                if (link) link.classList.add('border-amber-300');
+            }
+        },
+
+        showNewSessionNotification(sessionId, isManualView = false) {
+            const message = isManualView || this.userManuallySelectedSession ?
+                'New conversation started - staying on current view' :
+                'New conversation detected - jumping to latest chat';
 
             Swal.fire({
                 icon: 'info',

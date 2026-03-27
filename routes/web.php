@@ -75,6 +75,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/sessions-list', [ChatController::class, 'getSessionsList'])->name('bots.sessions-list');
         Route::get('/load-more-sessions', [ChatController::class, 'loadMoreSessions'])->name('bots.load-more-sessions');
         Route::get('/load-more-messages', [ChatController::class, 'loadMoreMessages'])->name('bots.load-more-messages');
+        Route::get('/get-session-messages', [ChatController::class, 'getSessionMessages'])->name('bots.get-session-messages');
         Route::get('/poll', [ChatController::class, 'pollMessages'])->name('bots.poll');
         Route::post('/send-reply', [ChatController::class, 'sendAdminReply'])->name('bots.send-reply');
         Route::post('/clear-session', [ChatController::class, 'clearSession'])->name('bots.clear-session');

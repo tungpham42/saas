@@ -227,6 +227,47 @@ class ChatController extends Controller
     }
 
     /**
+     * Get session messages for AJAX loading (without page reload)
+     */
+    public function getSessionMessages(Request $request, Bot $bot)
+    {
+        $this->authorizeBot($bot);
+
+        $sessionId = $request->query('session_id');
+
+        if (!$sessionId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session ID is required'
+            ], 400);
+        }
+
+        // Fetch messages for this session
+        $messages = $bot->chatLogs()
+            ->where('session_id', $sessionId)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Format messages for JSON response
+        $messagesData = [];
+        foreach ($messages as $message) {
+            $messagesData[] = [
+                'id' => $message->id,
+                'role' => $message->role,
+                'content' => $message->content,
+                'created_at' => $this->formatDateForJson($message->created_at),
+                'html' => view('chat.partials.message-bubble', ['message' => $message])->render()
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'messages' => $messagesData,
+            'total' => $messagesData.length
+        ]);
+    }
+
+    /**
      * Get paginated sessions based on date filters
      */
     private function getSessionsPaginated(Bot $bot, ?string $datePreset, ?string $filterDate, int $perPage, int $page)
