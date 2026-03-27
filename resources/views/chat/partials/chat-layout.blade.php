@@ -421,10 +421,10 @@ function chatManager() {
                     this.renderSessionsList(data.sessions);
 
                     // Auto-jump to new session if in live mode
-                    if (this.isLive && newSessions.length > 0) {
-                        const latestSession = data.sessions[0];
-                        this.jumpToSession(latestSession.session_id);
-                    }
+                    // if (this.isLive && newSessions.length > 0) {
+                    //     const latestSession = data.sessions[0];
+                    //     this.jumpToSession(latestSession.session_id);
+                    // }
 
                     this.updateKnownSessions();
                 } else {
