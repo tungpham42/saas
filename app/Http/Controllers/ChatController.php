@@ -357,24 +357,28 @@ class ChatController extends Controller
 
         $sessionId = $request->query('session_id');
         $lastId = (int) $request->query('last_id', 0);
-        $role = $request->query('role');
 
         if (!$sessionId) {
             return response()->json(['error' => 'Session ID required'], 400);
         }
 
-        $query = $bot->chatLogs()
+        // 1. Get new messages
+        $messages = $bot->chatLogs()
             ->where('session_id', $sessionId)
-            ->where('id', '>', $lastId);
+            ->where('id', '>', $lastId)
+            ->orderBy('id', 'asc')
+            ->get();
 
-        if ($role === 'admin') {
-            $query->where('role', 'admin');
-        }
-
-        $messages = $query->orderBy('id', 'asc')->get();
+        // 2. Get updated session info
+        $session = $bot->chatLogs()
+            ->selectRaw('session_id, MAX(created_at) as last_time, COUNT(*) as msgs')
+            ->where('session_id', $sessionId)
+            ->groupBy('session_id')
+            ->first();
 
         return response()->json([
             'messages' => $messages,
+            'session' => $session,
             'last_id' => $messages->last()?->id ?? $lastId
         ]);
     }

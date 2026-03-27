@@ -48,7 +48,7 @@
                     $sessionInfo = parseSessionId($session->session_id, $bot);
                     $lastTime = \Carbon\Carbon::parse($session->last_time);
                 ?>
-                <a href="{{ route($isLive ? 'bots.live-chat' : 'bots.history', $bot) }}?session_id={{ urlencode($session->session_id) }}&date_preset={{ $datePreset }}&filter_date={{ $filterDate }}"
+                <a data-session-id="{{ $session->session_id }}" href="{{ route($isLive ? 'bots.live-chat' : 'bots.history', $bot) }}?session_id={{ urlencode($session->session_id) }}&date_preset={{ $datePreset }}&filter_date={{ $filterDate }}"
                    class="block p-3 rounded-xl transition-all {{ $isActive ? 'gradient-warm text-amber-900 shadow-md' : 'hover:bg-amber-50 dark:hover:bg-gray-800' }}">
                     <div class="flex items-start justify-between">
                         <div class="flex-1 min-w-0">
@@ -64,8 +64,13 @@
                             </p>
                             @endif
                             <div class="flex items-center gap-3 mt-2 text-xs {{ $isActive ? 'text-amber-800/70' : 'text-amber-400' }}">
-                                <span><i class="far fa-clock mr-1"></i>{{ $lastTime->format('M d, H:i') }}</span>
-                                <span><i class="fas fa-comment mr-1"></i>{{ $session->msgs }} msgs</span>
+                                <span class="session-last-time">
+                                    <i class="far fa-clock mr-1"></i>{{ $lastTime->format('M d, H:i') }}
+                                </span>
+
+                                <span class="session-msg-count">
+                                    <i class="fas fa-comment mr-1"></i>{{ $session->msgs }} msgs
+                                </span>
                             </div>
                         </div>
                         @if($isLive && !hasRecentAdminReply($bot, $session->session_id))
@@ -198,13 +203,12 @@ function chatManager() {
             this.isPolling = true;
 
             try {
-                // [FIX] Used urlencode dynamically to ensure safety against special chars like & and ? inside session IDs
                 const response = await fetch(`{{ route('bots.poll', $bot) }}?session_id={{ urlencode($selectedSession) }}&last_id=${this.lastMsgId}`);
                 const data = await response.json();
 
+                // 1. Append new messages
                 if (data.messages && data.messages.length > 0) {
                     data.messages.forEach(msg => {
-                        // [FIX] Parse as Int to ensure Javascript doesn't coercively compare them as strings leading to overlap bugs
                         const msgId = parseInt(msg.id, 10);
                         if (msgId > this.lastMsgId) {
                             this.appendMessage(msg);
@@ -212,6 +216,12 @@ function chatManager() {
                         }
                     });
                 }
+
+                // 2. Update session info (time + message count)
+                if (data.session) {
+                    this.updateSessionSidebar(data.session);
+                }
+
             } catch (error) {
                 console.error('Polling error:', error);
             } finally {
@@ -230,6 +240,26 @@ function chatManager() {
             container.insertAdjacentHTML('beforeend', messageHtml);
             container.scrollTop = container.scrollHeight;
         },
+
+        updateSessionSidebar(session) {
+            const links = document.querySelectorAll('[data-session-id]');
+
+            links.forEach(link => {
+                if (link.dataset.sessionId === session.session_id) {
+
+                    // Update message count
+                    const msgEl = link.querySelector('.session-msg-count');
+                    if (msgEl) msgEl.innerText = session.msgs + ' msgs';
+
+                    // Update last time
+                    const timeEl = link.querySelector('.session-last-time');
+                    if (timeEl) {
+                        const d = new Date(session.last_time);
+                        timeEl.innerText = d.toLocaleString();
+                    }
+                }
+            });
+        }
 
         async sendReply(event) {
             const input = document.getElementById('reply-message');
