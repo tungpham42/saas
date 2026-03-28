@@ -62,7 +62,7 @@
             right: {!! $posRight !!},
             left: {!! $posLeft !!}
         },
-        icon_type: `{!! $iconType ?? 'emoji' !!}`,
+        iconType: `{!! $iconType ?? 'emoji' !!}`,
         uiTriggerIcon: `{!! $uiTriggerIcon ?? '💬' !!}`,
         uiTriggerCustomIcon: `{!! !empty($uiTriggerCustomIcon) ? asset($uiTriggerCustomIcon) : '' !!}`,
         triggerBgCss: `{!! $triggerBgCss !!}`,
@@ -772,8 +772,8 @@
         triggerButton = document.createElement('button');
         triggerButton.className = 'ai-chat-trigger';
 
-        // Handle icon display based on icon_type
-        if (settings.icon_type === 'custom' && settings.uiTriggerCustomIcon) {
+        // Handle icon display based on iconType
+        if (settings.iconType === 'custom' && settings.uiTriggerCustomIcon) {
             triggerButton.innerHTML = `<img src="${settings.uiTriggerCustomIcon}" alt="Chat Icon">`;
         } else {
             triggerButton.innerHTML = settings.uiTriggerIcon || '💬';
