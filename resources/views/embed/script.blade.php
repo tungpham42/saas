@@ -62,9 +62,9 @@
             right: {!! $posRight !!},
             left: {!! $posLeft !!}
         },
-        icon_type: `{!! $icon_type ?? 'emoji' !!}`,
-        ui_trigger_icon: `{!! $ui_trigger_icon ?? '💬' !!}`,
-        ui_trigger_custom_icon: `{!! !empty($ui_trigger_custom_icon) ? asset($ui_trigger_custom_icon) : '' !!}`,
+        icon_type: `{!! $iconType ?? 'emoji' !!}`,
+        uiTriggerIcon: `{!! $uiTriggerIcon ?? '💬' !!}`,
+        uiTriggerCustomIcon: `{!! !empty($uiTriggerCustomIcon) ? asset($uiTriggerCustomIcon) : '' !!}`,
         triggerBgCss: `{!! $triggerBgCss !!}`,
         triggerRadius: {!! $triggerRadius !!},
         clearOnClose: {!! $clearOnClose !!},
@@ -773,10 +773,10 @@
         triggerButton.className = 'ai-chat-trigger';
 
         // Handle icon display based on icon_type
-        if (settings.icon_type === 'custom' && settings.ui_trigger_custom_icon) {
-            triggerButton.innerHTML = `<img src="${settings.ui_trigger_custom_icon}" alt="Chat Icon">`;
+        if (settings.icon_type === 'custom' && settings.uiTriggerCustomIcon) {
+            triggerButton.innerHTML = `<img src="${settings.uiTriggerCustomIcon}" alt="Chat Icon">`;
         } else {
-            triggerButton.innerHTML = settings.ui_trigger_icon || '💬';
+            triggerButton.innerHTML = settings.uiTriggerIcon || '💬';
         }
 
         triggerButton.setAttribute('aria-label', 'Open chat');

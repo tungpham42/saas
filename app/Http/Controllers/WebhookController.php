@@ -47,12 +47,10 @@ class WebhookController extends Controller
         $posLeft = json_encode($bot->ui_pos_left ?: 'auto');
         $triggerRadius = json_encode($bot->ui_trigger_border_radius ?: '50%');
 
-        $triggerIconRaw = $bot->ui_trigger_icon ?: '💬';
-        if (filter_var($triggerIconRaw, FILTER_VALIDATE_URL)) {
-            $triggerIcon = "<img src='" . e($triggerIconRaw) . "' style='width:100%; height:100%; border-radius:{$triggerRadius}; object-fit:cover; pointer-events:none;' alt='Chat' />";
-        } else {
-            $triggerIcon = e($triggerIconRaw);
-        }
+        // Add icon type and values
+        $iconType = json_encode($bot->icon_type ?? 'emoji');
+        $uiTriggerIcon = json_encode($bot->ui_trigger_icon ?? '💬');
+        $uiTriggerCustomIcon = json_encode(!empty($bot->ui_trigger_custom_icon) && file_exists(public_path($bot->ui_trigger_custom_icon)) ? asset($bot->ui_trigger_custom_icon) : '');
 
         $triggerBgCss = empty($bot->ui_trigger_bg_transparent)
             ? "background: {$bot->ui_color}; box-shadow: 0 4px 15px rgba(0,0,0,0.2);"
@@ -71,9 +69,10 @@ class WebhookController extends Controller
             'apiKey', 'apiUrl', 'pollUrl', 'leadUrl',
             'color', 'bg', 'textColor', 'title', 'welcomeMsg',
             'placeholder', 'btnText', 'posBottom', 'posRight', 'posLeft',
-            'triggerIcon', 'triggerBgCss', 'triggerRadius', 'clearOnClose',
+            'triggerBgCss', 'triggerRadius', 'clearOnClose',
             'preChatEnabled', 'preChatMsg', 'preChatNameLabel', 'preChatPhoneLabel',
-            'preChatBtnText', 'preChatErrorMsg'
+            'preChatBtnText', 'preChatErrorMsg',
+            'iconType', 'uiTriggerIcon', 'uiTriggerCustomIcon' // Add these new variables
         ))->render();
 
         return response($js, 200)

@@ -105,8 +105,8 @@ class BotController extends Controller
             'ui_pos_bottom' => 'nullable|string|max:20',
             'ui_pos_right' => 'nullable|string|max:20',
             'ui_pos_left' => 'nullable|string|max:20',
-            'icon_type' => 'required|in:emoji,custom', // Validate the radio button choice
-            'ui_trigger_icon' => 'nullable|string',
+            'icon_type' => 'required|in:emoji,custom',
+            'ui_trigger_icon' => 'nullable|string|max:10',
             'ui_trigger_custom_icon' => 'nullable|image|mimes:png,jpg,jpeg,svg,webp|max:1024',
             'ui_trigger_border_radius' => 'nullable|string|max:20',
             'admin_timeout_mins' => 'nullable|integer|min:0',
@@ -126,9 +126,12 @@ class BotController extends Controller
                 @unlink(public_path($bot->ui_trigger_custom_icon));
             }
             $validated['ui_trigger_custom_icon'] = null;
-
+            // Keep the emoji icon if provided, otherwise use default
+            if (empty($validated['ui_trigger_icon'])) {
+                $validated['ui_trigger_icon'] = '💬';
+            }
         } else {
-            // User chose Custom Image: Clear the Emoji text so the widget prioritizes the image
+            // User chose Custom Image: Clear the Emoji text
             $validated['ui_trigger_icon'] = null;
 
             // Process image upload
@@ -143,13 +146,15 @@ class BotController extends Controller
                 $iconFile->move(public_path('uploads/bot-icons'), $iconName);
 
                 $validated['ui_trigger_custom_icon'] = 'uploads/bot-icons/' . $iconName;
-
             } elseif ($request->boolean('remove_custom_icon')) {
+                // User requested to remove custom icon
                 if ($bot->ui_trigger_custom_icon && file_exists(public_path($bot->ui_trigger_custom_icon))) {
                     @unlink(public_path($bot->ui_trigger_custom_icon));
                 }
                 $validated['ui_trigger_custom_icon'] = null;
-
+                // If removing custom icon and icon_type is custom, we should revert to emoji
+                $validated['icon_type'] = 'emoji';
+                $validated['ui_trigger_icon'] = $bot->ui_trigger_icon ?: '💬';
             } else {
                 // Keep the existing custom icon path if no new file is uploaded
                 unset($validated['ui_trigger_custom_icon']);
