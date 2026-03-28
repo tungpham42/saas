@@ -8,7 +8,7 @@ use App\Models\ChatLog;
 use App\Mail\ChatTranscriptMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class NotificationService
 {
@@ -20,7 +20,7 @@ class NotificationService
                     $query->whereNotNull('email_notify_addresses')
                         ->where('email_notify_addresses', '!=', '');
                 })
-                ->with(['bot']) // Eager load bot relationship
+                ->with(['bot'])
                 ->get();
 
             if ($sessions->isEmpty()) {
@@ -32,17 +32,10 @@ class NotificationService
 
             foreach ($sessions as $session) {
                 try {
-                    DB::beginTransaction();
-
-                    $sent = $this->processSession($session);
-
-                    if ($sent) {
-                        DB::commit();
-                    } else {
-                        DB::rollBack();
-                    }
+                    // Removed unnecessary DB transactions.
+                    // A single atomic update in processSession is sufficient.
+                    $this->processSession($session);
                 } catch (\Exception $e) {
-                    DB::rollBack();
                     $this->logError('Failed to process session', $session, $e);
                 }
             }
@@ -56,16 +49,17 @@ class NotificationService
         $bot = $session->bot;
         $timeoutMins = $bot->email_notify_timeout_mins ?? 10;
 
-        // Get last message time
-        $lastMsgTime = ChatLog::where('bot_id', $bot->id)
+        // max() returns a string, so we need to parse it cleanly
+        $lastMsgTimeRaw = ChatLog::where('bot_id', $bot->id)
             ->where('session_id', $session->session_id)
             ->max('created_at');
 
-        if (!$lastMsgTime) {
+        if (!$lastMsgTimeRaw) {
             $this->logInfo("No messages found for session: {$session->session_id}");
             return false;
         }
 
+        $lastMsgTime = Carbon::parse($lastMsgTimeRaw);
         $minutesSinceLastMsg = now()->diffInMinutes($lastMsgTime);
         $isTimeout = $minutesSinceLastMsg >= $timeoutMins;
 
@@ -74,7 +68,6 @@ class NotificationService
             return false;
         }
 
-        // Send email
         $sent = $this->sendTranscriptEmail($bot, $session);
 
         if ($sent) {
@@ -107,10 +100,11 @@ class NotificationService
                 return false;
             }
 
-            // Queue the email for better performance
-            Mail::to($emails)->queue(new ChatTranscriptMail($bot, $session, $messages));
+            // Using send() instead of queue() because the schedule already runs this in the background.
+            // This prevents jobs from getting stuck if a queue worker daemon isn't actively running.
+            Mail::to($emails)->send(new ChatTranscriptMail($bot, $session, $messages));
 
-            $this->logInfo("Email queued to: " . implode(', ', $emails), [
+            $this->logInfo("Email dispatched to: " . implode(', ', $emails), [
                 'bot_id' => $bot->id,
                 'session_id' => $session->session_id,
                 'message_count' => $messages->count()
@@ -119,7 +113,7 @@ class NotificationService
             return true;
 
         } catch (\Exception $e) {
-            $this->logError('Failed to queue email', $session, $e);
+            $this->logError('Failed to send email', $session, $e);
             return false;
         }
     }
