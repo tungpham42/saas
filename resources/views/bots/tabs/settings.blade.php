@@ -252,7 +252,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="flex items-center gap-3 cursor-pointer">
+                        <label class="flex items-center gap-3 cursor-pointer w-fit">
                             <input type="hidden" name="ui_trigger_bg_transparent" value="0">
                             <input type="checkbox" name="ui_trigger_bg_transparent" value="1" {{ ($bot->ui_trigger_bg_transparent ?? false) ? 'checked' : '' }} class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
                             <span class="text-sm font-semibold text-amber-700 dark:text-amber-300">
@@ -262,7 +262,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="flex items-center gap-3 cursor-pointer">
+                        <label class="flex items-center gap-3 cursor-pointer w-fit">
                             <input type="hidden" name="ui_clear_on_close" value="0">
                             <input type="checkbox" name="ui_clear_on_close" value="1" {{ ($bot->ui_clear_on_close ?? false) ? 'checked' : '' }} class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
                             <span class="text-sm font-semibold text-amber-700 dark:text-amber-300">
@@ -272,7 +272,7 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="flex items-center gap-3 cursor-pointer">
+                        <label class="flex items-center gap-3 cursor-pointer w-fit">
                             <input type="hidden" name="ui_pre_chat_form" value="0">
                             <input type="checkbox" name="ui_pre_chat_form" value="1" {{ ($bot->ui_pre_chat_form ?? false) ? 'checked' : '' }} class="rounded border-amber-300 text-amber-600 focus:ring-amber-500">
                             <span class="text-sm font-semibold text-amber-700 dark:text-amber-300">

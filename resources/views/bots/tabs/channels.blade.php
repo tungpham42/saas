@@ -56,7 +56,7 @@
 
                 <!-- Channel Header -->
                 <div class="px-6 py-4 bg-gradient-to-r from-amber-50 to-amber-100 dark:from-gray-800 dark:to-gray-700 border-b border-amber-200 dark:border-gray-600 flex flex-wrap items-center justify-between gap-4">
-                    <div class="flex items-center gap-3 cursor-pointer" @click="showConfig = !showConfig">
+                    <div class="flex items-center gap-3 cursor-pointer w-fit" @click="showConfig = !showConfig">
                         <div class="text-3xl">
                             @switch($channel->channel_type)
                                 @case('fb') 📘 @break
