@@ -62,9 +62,9 @@
             right: {!! $posRight !!},
             left: {!! $posLeft !!}
         },
-        iconType: `{!! $iconType ?? 'emoji' !!}`,
-        uiTriggerIcon: `{!! $uiTriggerIcon ?? '💬' !!}`,
-        uiTriggerCustomIcon: `{!! !empty($uiTriggerCustomIcon) ? $uiTriggerCustomIcon : '' !!}`,
+        iconType: {!! $iconType !!},
+        uiTriggerIcon: {!! $uiTriggerIcon !!},
+        uiTriggerCustomIcon: {!! $uiTriggerCustomIcon !!},
         triggerBgCss: `{!! $triggerBgCss !!}`,
         triggerRadius: {!! $triggerRadius !!},
         clearOnClose: {!! $clearOnClose !!},
