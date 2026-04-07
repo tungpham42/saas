@@ -1,33 +1,31 @@
 @extends('layouts.app')
 
-@section('title', 'Community Members - SaaS AI Chatbot')
+@section('title', __('Community Members - SaaS AI Chatbot'))
 
 @section('content')
 <div class="space-y-8">
-    <!-- Header -->
     <div class="flex flex-wrap justify-between items-center gap-4 animate-gentle">
         <div>
-            <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">Community Members 🌟</h1>
-            <p class="text-amber-600 dark:text-amber-400 mt-1">Meet the wonderful people using our platform</p>
+            <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">{{ __('Community Members 🌟') }}</h1>
+            <p class="text-amber-600 dark:text-amber-400 mt-1">{{ __('Meet the wonderful people using our platform') }}</p>
         </div>
         <a href="{{ route('users.create') }}" class="btn-soft inline-flex items-center gap-2">
             <i class="fas fa-user-plus"></i>
-            <span>Welcome New Member</span>
+            <span>{{ __('Welcome New Member') }}</span>
         </a>
     </div>
 
-    <!-- Users Table -->
     <div class="card-warm overflow-hidden animate-gentle" style="animation-delay: 0.1s">
         <div class="overflow-x-auto">
             <table class="table-warm">
                 <thead>
                     <tr>
-                        <th>Member</th>
-                        <th>Email</th>
-                        <th>Bots</th>
-                        <th>Plan</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th>{{ __('Member') }}</th>
+                        <th>{{ __('Email') }}</th>
+                        <th>{{ __('Bots') }}</th>
+                        <th>{{ __('Plan') }}</th>
+                        <th>{{ __('Status') }}</th>
+                        <th>{{ __('Actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,7 +49,7 @@
                         <td>
                             <div class="text-sm">
                                 <span class="font-medium text-amber-800 dark:text-amber-200">${{ max(0, $user->bot_limit - 1) * 2 }}/mo</span>
-                                <div class="text-xs text-amber-500">Base + {{ max(0, $user->bot_limit - 1) }} bots</div>
+                                <div class="text-xs text-amber-500">{{ __('Base + ') }}{{ max(0, $user->bot_limit - 1) }} bots</div>
                             </div>
                         </td>
                         <td>
@@ -62,13 +60,13 @@
                         </td>
                         <td>
                             <div class="flex gap-2">
-                                <a href="{{ route('users.edit', $user) }}" class="text-amber-600 hover:text-amber-700 transition" title="Edit">
+                                <a href="{{ route('users.edit', $user) }}" class="text-amber-600 hover:text-amber-700 transition" title="{{ __('Edit') }}">
                                     <i class="fas fa-edit"></i>
                                 </a>
                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirmDeleteUser(this)">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-500 hover:text-red-600 transition" title="Remove">
+                                    <button type="submit" class="text-red-500 hover:text-red-600 transition" title="{{ __('Remove') }}">
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                 </form>
@@ -79,8 +77,8 @@
                     <tr>
                         <td colspan="6" class="p-12 text-center">
                             <div class="text-6xl mb-4">🌟</div>
-                            <p class="text-amber-600 dark:text-amber-400">No members yet</p>
-                            <p class="text-sm text-amber-500 mt-1">Invite someone to join the community</p>
+                            <p class="text-amber-600 dark:text-amber-400">{{ __('No members yet') }}</p>
+                            <p class="text-sm text-amber-500 mt-1">{{ __('Invite someone to join the community') }}</p>
                         </td>
                     </tr>
                     @endforelse
@@ -100,14 +98,14 @@
 <script>
 function confirmDeleteUser(form) {
     Swal.fire({
-        title: 'Remove member? 💔',
-        text: 'This will delete all their bots and memories. This cannot be undone.',
+        title: '{{ __("Remove member? 💔") }}',
+        text: '{{ __("This will delete all their bots and memories. This cannot be undone.") }}',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#f59e0b',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Yes, remove',
-        cancelButtonText: 'Cancel'
+        confirmButtonText: '{{ __("Yes, remove") }}',
+        cancelButtonText: '{{ __("Cancel") }}'
     }).then((result) => {
         if (result.isConfirmed) form.submit();
     });

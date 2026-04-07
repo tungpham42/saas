@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\App;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\VerificationController;
@@ -19,6 +21,13 @@ use App\Http\Controllers\WebhookController;
 | Web Routes
 |--------------------------------------------------------------------------
 */
+
+Route::get('lang/{locale}', function ($locale) {
+    if (in_array($locale, ['en', 'vi'])) {
+        Session::put('locale', $locale);
+    }
+    return redirect()->back();
+})->name('language.switch');
 
 // Public routes - Landing page
 Route::get('/', function () {

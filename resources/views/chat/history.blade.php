@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Chat History - ' . $bot->name)
+@section('title', __('Chat History') . ' - ' . $bot->name)
 
 @section('content')
 <div class="space-y-4">
@@ -9,8 +9,8 @@
             <i class="fas fa-arrow-left text-xl"></i>
         </a>
         <div>
-            <h1 class="text-2xl font-bold text-amber-800 dark:text-amber-200">Chat History 📜</h1>
-            <p class="text-sm text-amber-600 dark:text-amber-400 mt-1">Browse past conversations with {{ $bot->name }}</p>
+            <h1 class="text-2xl font-bold text-amber-800 dark:text-amber-200">{{ __('Chat History 📜') }}</h1>
+            <p class="text-sm text-amber-600 dark:text-amber-400 mt-1">{{ __('Browse past conversations with') }} {{ $bot->name }}</p>
         </div>
     </div>
 

@@ -25,7 +25,7 @@
                     <i class="far fa-clock mr-1"></i>{{ $lastTime->format('M d, H:i') }}
                 </span>
                 <span>
-                    <i class="fas fa-comment mr-1"></i>{{ $session->msgs }} msgs
+                    <i class="fas fa-comment mr-1"></i>{{ $session->msgs }} {{ __('msgs') }}
                 </span>
             </div>
         </div>

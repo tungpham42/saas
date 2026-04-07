@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', ($isLive ? 'Live Chat' : 'Chat History') . ' - ' . $bot->name)
+@section('title', ($isLive ? __('Live Chat') : __('Chat History')) . ' - ' . $bot->name)
 
 @section('content')
 <div class="space-y-4">
@@ -9,33 +9,32 @@
             <i class="fas fa-arrow-left text-xl"></i>
         </a>
         <div>
-            <h1 class="text-2xl font-bold text-amber-800 dark:text-amber-200">{{ $isLive ? 'Live Chat 💬' : 'Chat History 📜' }}</h1>
-            <p class="text-sm text-amber-600 dark:text-amber-400 mt-1">{{ $isLive ? 'Real-time conversations with' : 'Browse past conversations with' }} {{ $bot->name }}</p>
+            <h1 class="text-2xl font-bold text-amber-800 dark:text-amber-200">{{ $isLive ? __('Live Chat 💬') : __('Chat History 📜') }}</h1>
+            <p class="text-sm text-amber-600 dark:text-amber-400 mt-1">{{ $isLive ? __('Real-time conversations with') : __('Browse past conversations with') }} {{ $bot->name }}</p>
         </div>
         @if($isLive)
         <div class="ml-auto flex items-center gap-2">
             <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse-soft"></div>
-            <span class="text-sm text-green-600 dark:text-green-400 font-medium">Live & Connected</span>
+            <span class="text-sm text-green-600 dark:text-green-400 font-medium">{{ __('Live & Connected') }}</span>
         </div>
         @endif
     </div>
 
     <div x-data="chatManager()" x-init="init()" x-on:destroy="cleanup()" class="card-warm overflow-hidden">
         <div class="flex flex-col lg:flex-row h-[calc(100vh-200px)] min-h-[500px]">
-            <!-- Sidebar with sessions -->
             <div class="w-full lg:w-80 border-r border-amber-100 dark:border-gray-700 flex flex-col bg-amber-50/30 dark:bg-gray-800/30">
                 <div class="p-4 border-b border-amber-100 dark:border-gray-700 bg-white dark:bg-gray-800">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
                             <i class="fas fa-comments text-amber-500"></i>
-                            <span>{{ $isLive ? '💬 Live Chats' : '📜 Chat History' }}</span>
+                            <span>{{ $isLive ? __('💬 Live Chats') : __('📜 Chat History') }}</span>
                         </h3>
                         @if($isLive)
                         <div class="flex items-center gap-2">
                             <span x-show="newSessionsCount > 0" x-text="newSessionsCount"
                                   class="bg-red-500 text-white text-xs rounded-full px-2 py-1 animate-pulse"></span>
                             <span class="text-xs text-green-500">
-                                <i class="fas fa-circle text-[8px] animate-pulse"></i> Live
+                                <i class="fas fa-circle text-[8px] animate-pulse"></i> {{ __('Live') }}
                             </span>
                         </div>
                         @endif
@@ -46,7 +45,7 @@
                         @csrf
                         <button type="submit" class="w-full px-3 py-2 bg-amber-50 dark:bg-red-900/20 text-amber-600 dark:text-red-400 rounded-xl text-sm font-medium hover:bg-amber-100 dark:hover:bg-red-900/30 transition flex items-center justify-center gap-2">
                             <i class="fas fa-broom"></i>
-                            <span>Tidy Up All</span>
+                            <span>{{ __('Tidy Up All') }}</span>
                         </button>
                     </form>
                     @endif
@@ -56,14 +55,14 @@
                         <div class="relative">
                             <i class="fas fa-calendar-alt absolute left-3 top-1/2 transform -translate-y-1/2 text-amber-400 text-sm"></i>
                             <select name="date_preset" x-model="datePreset" @change="applyDateFilter" class="w-full pl-10 pr-4 py-2 border border-amber-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-amber-800 dark:text-amber-200 text-sm focus:ring-2 focus:ring-amber-500">
-                                <option value="">All Time</option>
-                                <option value="today">Today so far</option>
-                                <option value="yesterday">Yesterday</option>
-                                <option value="last_7">Last 7 days</option>
-                                <option value="this_month">This month</option>
-                                <option value="last_month">Last month</option>
-                                <option value="last_30">Last 30 days</option>
-                                <option value="custom">Pick a date...</option>
+                                <option value="">{{ __('All Time') }}</option>
+                                <option value="today">{{ __('Today so far') }}</option>
+                                <option value="yesterday">{{ __('Yesterday') }}</option>
+                                <option value="last_7">{{ __('Last 7 days') }}</option>
+                                <option value="this_month">{{ __('This month') }}</option>
+                                <option value="last_month">{{ __('Last month') }}</option>
+                                <option value="last_30">{{ __('Last 30 days') }}</option>
+                                <option value="custom">{{ __('Pick a date...') }}</option>
                             </select>
                         </div>
 
@@ -89,9 +88,9 @@
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between">
-                                        <p class="text-sm font-medium text-amber-800 dark:text-amber-200 truncate" x-text="session.channel_name || (session.channel_type === 'web' ? 'Website' : 'Chat')"></p>
+                                        <p class="text-sm font-medium text-amber-800 dark:text-amber-200 truncate" x-text="session.channel_name || (session.channel_type === 'web' ? '{{ __('Website') }}' : '{{ __('Chat') }}')"></p>
                                         <span class="session-msg-count text-xs text-amber-500 dark:text-amber-400">
-                                            <span x-text="session.msgs"></span> msgs
+                                            <span x-text="session.msgs"></span> {{ __('msgs') }}
                                             <span x-show="session.newMessagesCount > 0"
                                                   x-text="'+' + session.newMessagesCount"
                                                   class="new-badge ml-1 px-1.5 py-0.5 rounded-full text-xs font-bold bg-red-500 text-white animate-pulse"></span>
@@ -108,19 +107,18 @@
 
                     <div x-show="displayedSessions.length === 0 && !loadingMoreSessions" class="p-8 text-center text-amber-400">
                         <i class="fas fa-inbox text-4xl mb-3 opacity-50"></i>
-                        <p>No conversations yet</p>
+                        <p>{{ __('No conversations yet') }}</p>
                     </div>
 
                     <div x-show="loadingMoreSessions" class="text-center p-4">
                         <div class="loading-spinner mx-auto"></div>
-                        <p class="text-xs text-amber-500 mt-2">Loading more...</p>
+                        <p class="text-xs text-amber-500 mt-2">{{ __('Loading more...') }}</p>
                     </div>
 
                     <div id="sessions-sentinel" class="h-1"></div>
                 </div>
             </div>
 
-            <!-- Chat messages area -->
             <div class="flex-1 flex flex-col bg-white dark:bg-gray-800">
                 <template x-if="selectedSessionId">
                     <div class="flex flex-col h-full">
@@ -140,13 +138,13 @@
                                 <a :href="`{{ route('bots.export-session', $bot) }}?session_id=${encodeURIComponent(selectedSessionId)}`"
                                    class="px-3 py-1.5 text-sm bg-amber-50 dark:bg-gray-700 hover:bg-amber-100 dark:hover:bg-gray-600 rounded-xl transition flex items-center gap-1 text-amber-600">
                                     <i class="fas fa-download"></i>
-                                    <span>Save</span>
+                                    <span>{{ __('Save') }}</span>
                                 </a>
                                 @if(!$isLive)
                                 <button @click="clearSession(selectedSessionId)"
                                         class="px-3 py-1.5 text-sm bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition flex items-center gap-1">
                                     <i class="fas fa-trash-alt"></i>
-                                    <span>Clear</span>
+                                    <span>{{ __('Clear') }}</span>
                                 </button>
                                 @endif
                             </div>
@@ -155,7 +153,7 @@
                         <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-amber-50/30 to-white dark:from-gray-900 dark:to-gray-800">
                             <div x-show="loadingOlderMessages" class="text-center p-4">
                                 <div class="loading-spinner mx-auto"></div>
-                                <p class="text-xs text-amber-500 mt-2">Loading older messages...</p>
+                                <p class="text-xs text-amber-500 mt-2">{{ __('Loading older messages...') }}</p>
                             </div>
 
                             <template x-for="msg in messages" :key="msg.id">
@@ -163,7 +161,7 @@
                                     <div :class="msg.role === 'admin' ? 'gradient-warm text-amber-900' : (msg.role === 'user' ? 'bg-white dark:bg-gray-700 border border-amber-200 dark:border-gray-600 text-amber-800 dark:text-amber-200' : 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300')" class="max-w-[75%] rounded-2xl p-3 shadow-sm">
                                         <div class="flex items-center gap-2 text-xs opacity-70 mb-1">
                                             <i :class="msg.role === 'admin' ? 'fas fa-user-tie' : (msg.role === 'user' ? 'fas fa-user' : 'fas fa-robot')"></i>
-                                            <span x-text="msg.role === 'admin' ? 'You' : (msg.role === 'user' ? 'Customer' : 'AI Assistant')"></span>
+                                            <span x-text="msg.role === 'admin' ? '{{ __('You') }}' : (msg.role === 'user' ? '{{ __('Customer') }}' : '{{ __('AI Assistant') }}')"></span>
                                             <span>•</span>
                                             <span x-text="formatTime(msg.created_at, true)"></span>
                                         </div>
@@ -174,8 +172,8 @@
 
                             <div x-show="messages.length === 0 && !loadingOlderMessages" class="flex-1 flex flex-col items-center justify-center h-full opacity-80">
                                 <div class="text-6xl mb-4">💭</div>
-                                <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">Start the Conversation</h3>
-                                <p class="text-amber-500 dark:text-amber-400 mt-2">Be the first to say hello!</p>
+                                <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">{{ __('Start the Conversation') }}</h3>
+                                <p class="text-amber-500 dark:text-amber-400 mt-2">{{ __('Be the first to say hello!') }}</p>
                             </div>
                         </div>
 
@@ -186,10 +184,10 @@
                                 <div class="flex-1 relative">
                                     <input type="text" x-model="replyMessage"
                                         class="w-full px-4 py-3 pr-12 border border-amber-200 dark:border-gray-600 rounded-2xl focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white dark:bg-gray-700 text-amber-800 dark:text-amber-200"
-                                        placeholder="Type a warm reply..." autocomplete="off">
+                                        placeholder="{{ __('Type a warm reply...') }}" autocomplete="off">
                                     <button type="submit" :disabled="!replyMessage.trim()"
                                             class="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 btn-soft rounded-xl text-sm disabled:opacity-50">
-                                        Send 💝
+                                        {{ __('Send 💝') }}
                                     </button>
                                 </div>
                             </form>
@@ -201,8 +199,8 @@
                 <div x-show="!selectedSessionId" class="flex-1 flex items-center justify-center">
                     <div class="text-center p-8">
                         <div class="text-6xl mb-4">🤗</div>
-                        <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">Welcome to the Chat</h3>
-                        <p class="text-amber-500 dark:text-amber-400 mt-2">Choose a conversation from the sidebar to get started</p>
+                        <h3 class="text-xl font-semibold text-amber-700 dark:text-amber-300">{{ __('Welcome to the Chat') }}</h3>
+                        <p class="text-amber-500 dark:text-amber-400 mt-2">{{ __('Choose a conversation from the sidebar to get started') }}</p>
                     </div>
                 </div>
             </div>
@@ -513,9 +511,9 @@ function chatManager() {
 
             // Show notifications
             if (hasNewSessions && !this.userManuallySelectedSession) {
-                this.showNotification('New conversation started!', 'info');
+                this.showNotification('{{ __('New conversation started!') }}', 'info');
             } else if (hasUpdates && !this.userManuallySelectedSession) {
-                this.showNotification('New message received!', 'message');
+                this.showNotification('{{ __('New message received!') }}', 'message');
             }
 
             // Clear highlight flags after animation
@@ -798,7 +796,7 @@ function chatManager() {
                 this.replyMessage = '';
             } catch (error) {
                 console.error('Send reply error:', error);
-                Swal.fire('Oops!', 'Could not send message. Try again?', 'error');
+                Swal.fire('{{ __('Oops!') }}', '{{ __('Could not send message. Try again?') }}', 'error');
             } finally {
                 if (btn) btn.disabled = false;
                 if (input) {
@@ -891,7 +889,7 @@ function chatManager() {
         },
 
         formatTime(date, isTimeOnly = false) {
-            if (!date) return 'Just now';
+            if (!date) return '{{ __('Just now') }}';
             try {
                 const d = new Date(date);
                 if (isTimeOnly) {
@@ -899,20 +897,20 @@ function chatManager() {
                 }
                 return d.toLocaleString();
             } catch {
-                return 'Just now';
+                return '{{ __('Just now') }}';
             }
         },
 
         async clearSession(sessionId) {
             const result = await Swal.fire({
-                title: 'Clear this chat?',
-                text: 'This conversation will be removed.',
+                title: '{{ __('Clear this chat?') }}',
+                text: '{{ __('This conversation will be removed.') }}',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#f59e0b',
                 cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, clear it',
-                cancelButtonText: 'Cancel'
+                confirmButtonText: '{{ __('Yes, clear it') }}',
+                cancelButtonText: '{{ __('Cancel') }}'
             });
 
             if (!result.isConfirmed || this.isComponentDestroyed) return;
@@ -944,24 +942,24 @@ function chatManager() {
                         this.messages = [];
                     }
 
-                    Swal.fire('Cleared!', 'The session has been cleared.', 'success');
+                    Swal.fire('{{ __('Cleared!') }}', '{{ __('The session has been cleared.') }}', 'success');
                 }
             } catch (error) {
                 console.error('Clear session error:', error);
-                Swal.fire('Error', 'Failed to clear session.', 'error');
+                Swal.fire('{{ __('Error') }}', '{{ __('Failed to clear session.') }}', 'error');
             }
         },
 
         async clearAllChats() {
             const result = await Swal.fire({
-                title: 'Tidy up all chats? 🧹',
-                text: 'All conversations will be cleaned. This is permanent!',
+                title: '{{ __('Tidy up all chats? 🧹') }}',
+                text: '{{ __('All conversations will be cleaned. This is permanent!') }}',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#f59e0b',
                 cancelButtonColor: '#6b7280',
-                confirmButtonText: 'Yes, clean up',
-                cancelButtonText: 'Keep them'
+                confirmButtonText: '{{ __('Yes, clean up') }}',
+                cancelButtonText: '{{ __('Keep them') }}'
             });
 
             if (!result.isConfirmed || this.isComponentDestroyed) return;
@@ -986,11 +984,11 @@ function chatManager() {
                     this.selectedSessionId = null;
                     this.messages = [];
 
-                    Swal.fire('Cleaned!', 'All chats have been cleared.', 'success');
+                    Swal.fire('{{ __('Cleaned!') }}', '{{ __('All chats have been cleared.') }}', 'success');
                 }
             } catch (error) {
                 console.error('Clear all chats error:', error);
-                Swal.fire('Error', 'Failed to clear chats.', 'error');
+                Swal.fire('{{ __('Error') }}', '{{ __('Failed to clear chats.') }}', 'error');
             }
         },
 

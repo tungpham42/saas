@@ -1,10 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'Analytics - ' . $bot->name)
+@section('title', __('Analytics') . ' - ' . $bot->name)
 
 @section('content')
 <div class="space-y-8">
-    <!-- Header -->
     <div class="flex flex-wrap justify-between items-center gap-4 animate-gentle">
         <div>
             <div class="flex items-center gap-4">
@@ -12,32 +11,31 @@
                     <i class="fas fa-arrow-left text-xl"></i>
                 </a>
                 <div>
-                    <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">Bot's Journey 📊</h1>
-                    <p class="text-amber-600 dark:text-amber-400 mt-1">See how {{ $bot->name }} is helping people</p>
+                    <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">{{ __("Bot's Journey 🚀") }}</h1>
+                    <p class="text-amber-600 dark:text-amber-400 mt-1">{{ __('See how') }} {{ $bot->name }} {{ __('is helping people') }}</p>
                 </div>
             </div>
         </div>
         <button onclick="window.print()" class="btn-outline-soft inline-flex items-center gap-2">
             <i class="fas fa-print"></i>
-            <span>Share Report</span>
+            <span>{{ __('Share Report') }}</span>
         </button>
     </div>
 
-    <!-- Date Filter -->
     <div class="card-warm p-4 animate-gentle" style="animation-delay: 0.1s">
         <form method="GET" class="flex flex-wrap items-center gap-4">
             <input type="hidden" name="tab" value="stats">
             <i class="fas fa-calendar-alt text-amber-500"></i>
             <select name="stat_preset" onchange="this.form.submit()"
                     class="input-warm px-4 py-2">
-                <option value="" {{ !$statPreset ? 'selected' : '' }}>All Time</option>
-                <option value="today" {{ $statPreset === 'today' ? 'selected' : '' }}>Today</option>
-                <option value="yesterday" {{ $statPreset === 'yesterday' ? 'selected' : '' }}>Yesterday</option>
-                <option value="last_7" {{ $statPreset === 'last_7' ? 'selected' : '' }}>Last 7 days</option>
-                <option value="this_month" {{ $statPreset === 'this_month' ? 'selected' : '' }}>This month</option>
-                <option value="last_month" {{ $statPreset === 'last_month' ? 'selected' : '' }}>Last month</option>
-                <option value="last_30" {{ $statPreset === 'last_30' ? 'selected' : '' }}>Last 30 days</option>
-                <option value="custom" {{ $statPreset === 'custom' ? 'selected' : '' }}>Pick a date...</option>
+                <option value="" {{ !$statPreset ? 'selected' : '' }}>{{ __('All Time') }}</option>
+                <option value="today" {{ $statPreset === 'today' ? 'selected' : '' }}>{{ __('Today') }}</option>
+                <option value="yesterday" {{ $statPreset === 'yesterday' ? 'selected' : '' }}>{{ __('Yesterday') }}</option>
+                <option value="last_7" {{ $statPreset === 'last_7' ? 'selected' : '' }}>{{ __('Last 7 days') }}</option>
+                <option value="this_month" {{ $statPreset === 'this_month' ? 'selected' : '' }}>{{ __('This month') }}</option>
+                <option value="last_month" {{ $statPreset === 'last_month' ? 'selected' : '' }}>{{ __('Last month') }}</option>
+                <option value="last_30" {{ $statPreset === 'last_30' ? 'selected' : '' }}>{{ __('Last 30 days') }}</option>
+                <option value="custom" {{ $statPreset === 'custom' ? 'selected' : '' }}>{{ __('Pick a date...') }}</option>
             </select>
 
             <input type="date" name="stat_date" value="{{ $statDate }}"
@@ -46,18 +44,17 @@
 
             @if($statPreset || $statDate)
             <a href="{{ route('bots.statistics', $bot) }}" class="text-amber-500 hover:text-amber-600">
-                <i class="fas fa-times"></i> Clear
+                <i class="fas fa-times"></i> {{ __('Clear') }}
             </a>
             @endif
         </form>
     </div>
 
-    <!-- KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <div class="card-warm p-6 animate-gentle gradient-warm" style="animation-delay: 0.2s">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-amber-900/80 text-sm">Total Conversations</p>
+                    <p class="text-amber-900/80 text-sm">{{ __('Total Conversations') }}</p>
                     <p class="text-4xl font-bold text-amber-900 mt-2">{{ number_format($totalSessions) }}</p>
                 </div>
                 <div class="bg-white/20 rounded-full p-3">
@@ -65,14 +62,14 @@
                 </div>
             </div>
             <div class="mt-4 text-sm text-amber-800/70">
-                <i class="fas fa-chart-line mr-1"></i> {{ number_format($totalSessions / max(1, $bot->created_at->diffInDays(now()))) }} per day
+                <i class="fas fa-chart-line mr-1"></i> {{ number_format($totalSessions / max(1, $bot->created_at->diffInDays(now()))) }} {{ __('per day') }}
             </div>
         </div>
 
         <div class="card-warm p-6 animate-gentle" style="animation-delay: 0.3s">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-amber-600 dark:text-amber-400 text-sm">Human Help Sessions</p>
+                    <p class="text-amber-600 dark:text-amber-400 text-sm">{{ __('Human Help Sessions') }}</p>
                     <p class="text-3xl font-bold text-amber-800 dark:text-amber-200 mt-2">{{ number_format($takenOver) }}</p>
                 </div>
                 <div class="bg-green-100 dark:bg-green-900/30 rounded-full p-3">
@@ -84,7 +81,7 @@
                 <div class="w-full bg-amber-100 dark:bg-gray-700 rounded-full h-2">
                     <div class="bg-green-500 rounded-full h-2" style="width: {{ ($takenOver / max(1, $totalSessions)) * 100 }}%"></div>
                 </div>
-                <p class="text-xs text-amber-500 mt-1">{{ number_format(($takenOver / max(1, $totalSessions)) * 100, 1) }}% needed a human</p>
+                <p class="text-xs text-amber-500 mt-1">{{ number_format(($takenOver / max(1, $totalSessions)) * 100, 1) }}% {{ __('needed a human') }}</p>
             </div>
             @endif
         </div>
@@ -92,7 +89,7 @@
         <div class="card-warm p-6 animate-gentle" style="animation-delay: 0.4s">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-amber-600 dark:text-amber-400 text-sm">Helper Messages</p>
+                    <p class="text-amber-600 dark:text-amber-400 text-sm">{{ __('Helper Messages') }}</p>
                     <p class="text-3xl font-bold text-amber-800 dark:text-amber-200 mt-2">{{ number_format($totalAdminMsgs) }}</p>
                 </div>
                 <div class="bg-purple-100 dark:bg-purple-900/30 rounded-full p-3">
@@ -100,14 +97,14 @@
                 </div>
             </div>
             <div class="mt-4 text-sm text-amber-500">
-                <i class="fas fa-heart mr-1"></i> {{ number_format($totalAdminMsgs / max(1, $takenOver), 1) }} per human session
+                <i class="fas fa-heart mr-1"></i> {{ number_format($totalAdminMsgs / max(1, $takenOver), 1) }} {{ __('per human session') }}
             </div>
         </div>
 
         <div class="card-warm p-6 animate-gentle" style="animation-delay: 0.5s">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-amber-600 dark:text-amber-400 text-sm">First Response Time</p>
+                    <p class="text-amber-600 dark:text-amber-400 text-sm">{{ __('First Response Time') }}</p>
                     <p class="text-3xl font-bold text-amber-800 dark:text-amber-200 mt-2">{{ $avgFirstResponse }}</p>
                 </div>
                 <div class="bg-yellow-100 dark:bg-yellow-900/30 rounded-full p-3">
@@ -115,14 +112,14 @@
                 </div>
             </div>
             <div class="mt-4 text-sm text-amber-500">
-                <i class="fas fa-rocket mr-1"></i> Time until first human reply
+                <i class="fas fa-rocket mr-1"></i> {{ __('Time until first human reply') }}
             </div>
         </div>
 
         <div class="card-warm p-6 animate-gentle" style="animation-delay: 0.6s">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-amber-600 dark:text-amber-400 text-sm">Chat Duration</p>
+                    <p class="text-amber-600 dark:text-amber-400 text-sm">{{ __('Chat Duration') }}</p>
                     <p class="text-3xl font-bold text-amber-800 dark:text-amber-200 mt-2">{{ $avgHandlingTime }}</p>
                 </div>
                 <div class="bg-orange-100 dark:bg-orange-900/30 rounded-full p-3">
@@ -130,14 +127,14 @@
                 </div>
             </div>
             <div class="mt-4 text-sm text-amber-500">
-                <i class="fas fa-coffee mr-1"></i> Average conversation length
+                <i class="fas fa-coffee mr-1"></i> {{ __('Average conversation length') }}
             </div>
         </div>
 
         <div class="card-warm p-6 animate-gentle" style="animation-delay: 0.7s">
             <div class="flex justify-between items-start">
                 <div>
-                    <p class="text-amber-600 dark:text-amber-400 text-sm">Total Help Time</p>
+                    <p class="text-amber-600 dark:text-amber-400 text-sm">{{ __('Total Help Time') }}</p>
                     <p class="text-3xl font-bold text-amber-800 dark:text-amber-200 mt-2">{{ $totalOnlineTime }}</p>
                 </div>
                 <div class="bg-indigo-100 dark:bg-indigo-900/30 rounded-full p-3">
@@ -145,17 +142,16 @@
                 </div>
             </div>
             <div class="mt-4 text-sm text-amber-500">
-                <i class="fas fa-heart mr-1"></i> Time spent helping customers
+                <i class="fas fa-heart mr-1"></i> {{ __('Time spent helping customers') }}
             </div>
         </div>
     </div>
 
-    <!-- Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="card-warm overflow-hidden animate-gentle" style="animation-delay: 0.8s">
             <div class="px-6 py-4 border-b border-amber-100 dark:border-gray-700">
-                <h3 class="text-lg font-bold text-amber-800 dark:text-amber-200">Conversations Trend 📈</h3>
-                <p class="text-sm text-amber-500">Last 7 days</p>
+                <h3 class="text-lg font-bold text-amber-800 dark:text-amber-200">{{ __('Conversations Trend 📈') }}</h3>
+                <p class="text-sm text-amber-500">{{ __('Last 7 days') }}</p>
             </div>
             <div class="p-6">
                 <canvas id="sessionsChart" height="250"></canvas>
@@ -164,8 +160,8 @@
 
         <div class="card-warm overflow-hidden animate-gentle" style="animation-delay: 0.9s">
             <div class="px-6 py-4 border-b border-amber-100 dark:border-gray-700">
-                <h3 class="text-lg font-bold text-amber-800 dark:text-amber-200">Messages Distribution 💬</h3>
-                <p class="text-sm text-amber-500">Users vs AI vs Helpers</p>
+                <h3 class="text-lg font-bold text-amber-800 dark:text-amber-200">{{ __('Messages Distribution 📊') }}</h3>
+                <p class="text-sm text-amber-500">{{ __('Users vs AI vs Helpers') }}</p>
             </div>
             <div class="p-6">
                 <canvas id="messagesChart" height="250"></canvas>
@@ -173,12 +169,11 @@
         </div>
     </div>
 
-    <!-- Export -->
     <div class="card-warm p-6 animate-gentle" style="animation-delay: 1s">
         <div class="flex flex-wrap justify-between items-center gap-4">
             <div>
-                <h4 class="font-bold text-amber-800 dark:text-amber-200">Save Your Insights 📝</h4>
-                <p class="text-sm text-amber-500">Download data for deeper analysis</p>
+                <h4 class="font-bold text-amber-800 dark:text-amber-200">{{ __('Save Your Insights 💡') }}</h4>
+                <p class="text-sm text-amber-500">{{ __('Download data for deeper analysis') }}</p>
             </div>
             <div class="flex gap-3">
                 <button onclick="exportAsCSV()" class="btn-outline-soft px-4 py-2 inline-flex items-center gap-2">
@@ -204,7 +199,7 @@
         data: {
             labels: @json($chartData->pluck('date')),
             datasets: [{
-                label: 'Conversations',
+                label: '{{ __('Conversations') }}',
                 data: @json($chartData->pluck('sessions')),
                 borderColor: '#f59e0b',
                 backgroundColor: 'rgba(245, 158, 11, 0.1)',
@@ -234,7 +229,7 @@
     new Chart(messagesCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Visitors', 'AI Assistant', 'Human Helpers'],
+            labels: ['{{ __('Visitors') }}', '{{ __('AI Assistant') }}', '{{ __('Human Helpers') }}'],
             datasets: [{
                 data: [{{ $totalSessions * 2 }}, {{ $totalSessions * 1.5 }}, {{ $totalAdminMsgs }}],
                 backgroundColor: ['#fbbf24', '#f59e0b', '#d97706'],

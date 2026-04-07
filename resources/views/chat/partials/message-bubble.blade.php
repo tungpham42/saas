@@ -10,7 +10,7 @@
                ($isUser ? 'bg-white dark:bg-gray-700 border border-amber-200 dark:border-gray-600 text-amber-800 dark:text-amber-200' :
                'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800');
 
-    $roleLabel = $isAdmin ? 'You' : ($isUser ? 'Customer' : '🤖 AI Friend');
+    $roleLabel = $isAdmin ? __('You') : ($isUser ? __('Customer') : __('🤖 AI Friend'));
     $roleIcon = $isAdmin ? 'fa-user-tie' : ($isUser ? 'fa-user' : 'fa-robot');
     $time = \Carbon\Carbon::parse($message->created_at)->format('H:i');
     $date = \Carbon\Carbon::parse($message->created_at)->format('M d, Y');
@@ -18,7 +18,7 @@
 
     // Convert raw URLs into hyperlink icons
     $formattedContent = nl2br(e($message->content));
-    $formattedContent = preg_replace('/(https?:\/\/[^\s]+)/', '<a href="$1" target="_blank" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mx-1" title="Open Link"><i class="fas fa-link"></i></a>', $formattedContent);
+    $formattedContent = preg_replace('/(https?:\/\/[^\s]+)/', '<a href="$1" target="_blank" class="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 mx-1" title="' . __('Open Link') . '"><i class="fas fa-link"></i></a>', $formattedContent);
 @endphp
 
 <div class="flex {{ $align }} animate-gentle group">
@@ -43,7 +43,7 @@
         <div class="px-4 py-1 text-right opacity-0 group-hover:opacity-100 transition">
             <button onclick="copyMessage('{{ addslashes($message->content) }}')"
                     class="text-xs {{ $isAdmin ? 'text-amber-600' : ($isUser ? 'text-amber-400' : 'text-green-600') }} hover:text-amber-600 transition">
-                <i class="fas fa-copy"></i> Copy
+                <i class="fas fa-copy"></i> {{ __('Copy') }}
             </button>
         </div>
     </div>
@@ -55,8 +55,8 @@ function copyMessage(text) {
     navigator.clipboard.writeText(text);
     Swal.fire({
         icon: 'success',
-        title: 'Copied! 📋',
-        text: 'Message copied to clipboard',
+        title: '{{ __('Copied! 📋') }}',
+        text: '{{ __('Message copied to clipboard') }}',
         toast: true,
         timer: 2000,
         showConfirmButton: false,

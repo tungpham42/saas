@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Lead Details - ' . $lead->customer_name)
+@section('title', __('Lead Details') . ' - ' . $lead->customer_name)
 
 @section('content')
 <div class="max-w-4xl mx-auto space-y-6">
@@ -9,43 +9,41 @@
             <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
             </svg>
-            Back to Leads
+            {{ __('Back to Leads') }}
         </a>
     </div>
 
-    <!-- Lead Information -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-lg font-medium text-gray-900">Lead Information</h2>
+            <h2 class="text-lg font-medium text-gray-900">{{ __('Lead Information') }}</h2>
         </div>
         <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <label class="block text-sm font-medium text-gray-500">Name</label>
+                <label class="block text-sm font-medium text-gray-500">{{ __('Name') }}</label>
                 <p class="mt-1 text-lg font-semibold text-gray-900">{{ $lead->customer_name }}</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-500">Phone</label>
+                <label class="block text-sm font-medium text-gray-500">{{ __('Phone') }}</label>
                 <p class="mt-1 text-lg font-semibold text-gray-900">{{ $lead->customer_phone }}</p>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-500">Session ID</label>
+                <label class="block text-sm font-medium text-gray-500">{{ __('Session ID') }}</label>
                 <code class="mt-1 block text-sm font-mono bg-gray-100 p-2 rounded">{{ $lead->session_id }}</code>
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-500">Created At</label>
+                <label class="block text-sm font-medium text-gray-500">{{ __('Created At') }}</label>
                 <p class="mt-1 text-gray-900">{{ $lead->created_at->format('F d, Y H:i:s') }}</p>
                 <p class="text-sm text-gray-500">{{ $lead->created_at->diffForHumans() }}</p>
             </div>
         </div>
     </div>
 
-    <!-- Chat History -->
     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-            <h2 class="text-lg font-medium text-gray-900">Chat History</h2>
+            <h2 class="text-lg font-medium text-gray-900">{{ __('Chat History') }}</h2>
             <a href="{{ route('bots.history', $bot) }}?session_id={{ urlencode($lead->session_id) }}"
                class="text-blue-600 hover:text-blue-800 text-sm">
-                View Full Conversation →
+                {{ __('View Full Conversation →') }}
             </a>
         </div>
         <div class="p-6 space-y-4 max-h-96 overflow-y-auto">
@@ -68,21 +66,20 @@
                 </div>
             @empty
                 <div class="text-center text-gray-500 py-8">
-                    No messages found for this lead
+                    {{ __('No messages found for this lead') }}
                 </div>
             @endforelse
         </div>
     </div>
 
-    <!-- Actions -->
     <div class="flex justify-end gap-3">
         <a href="{{ route('bots.history', $bot) }}?session_id={{ urlencode($lead->session_id) }}"
            class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-            View Full Conversation
+            {{ __('View Full Conversation') }}
         </a>
         <a href="{{ route('bots.leads.export', $bot) }}?session_id={{ urlencode($lead->session_id) }}"
            class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200">
-            Export This Lead
+            {{ __('Export This Lead') }}
         </a>
     </div>
 </div>
