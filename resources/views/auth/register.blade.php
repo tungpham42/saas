@@ -42,7 +42,9 @@
     <div class="max-w-md w-full">
         <div class="text-center mb-8">
             <div class="inline-flex items-center justify-center w-20 h-20 gradient-warm rounded-2xl shadow-xl mb-4">
-                <i class="fas fa-robot text-amber-900 text-4xl"></i>
+                <a href="{{ route('home') }}">
+                    <i class="fas fa-robot text-amber-900 text-4xl"></i>
+                </a>
             </div>
             <h1 class="text-3xl font-bold text-amber-800 dark:text-amber-200">{{ __('Join Our Family') }}</h1>
             <p class="text-amber-600 dark:text-amber-400 mt-2">{{ __('Start your AI journey with us 🚀') }}</p>
