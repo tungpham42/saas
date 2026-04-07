@@ -183,8 +183,8 @@
                             <i class="fas fa-globe text-lg"></i>
                         </button>
                         <div x-show="langOpen" x-transition class="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-amber-100 dark:border-gray-700 overflow-hidden" style="display: none;">
-                            <a href="{{ route('language.switch', 'en') }}" class="block px-4 py-2 text-sm text-amber-800 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-gray-700">English</a>
-                            <a href="{{ route('language.switch', 'vi') }}" class="block px-4 py-2 text-sm text-amber-800 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-gray-700">Tiếng Việt</a>
+                            <a href="{{ route('language.switch', 'en') }}" class="block px-4 py-2 text-sm text-amber-800 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-gray-700">🇺🇸 English</a>
+                            <a href="{{ route('language.switch', 'vi') }}" class="block px-4 py-2 text-sm text-amber-800 dark:text-amber-200 hover:bg-amber-50 dark:hover:bg-gray-700">🇻🇳 Tiếng Việt</a>
                         </div>
                     </div>
 
