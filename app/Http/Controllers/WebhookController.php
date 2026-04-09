@@ -26,8 +26,8 @@ class WebhookController extends Controller
         $apiKey = $request->query('api_key');
         $bot = Bot::where('api_key', $apiKey)->first();
 
-        if (!$bot) {
-            return response("console.error('SaaS AI: Invalid API Key');", 200)
+        if (!$bot || !$bot->is_active) {
+            return response("console.error('SaaS AI: Invalid API Key or Bot is Inactive');", 200)
                 ->header('Content-Type', 'application/javascript');
         }
 
@@ -95,6 +95,10 @@ class WebhookController extends Controller
             return response()->json(['error' => 'Invalid API Key'], 401);
         }
 
+        if (!$bot->is_active) {
+            return response()->json(['error' => 'Bot is currently inactive'], 403);
+        }
+
         $response = app(\App\Services\LLMService::class)->generateResponse($bot, $sessionId, $message);
 
         return response()->json($response);
@@ -114,6 +118,10 @@ class WebhookController extends Controller
 
         if (!$bot) {
             return response()->json(['error' => 'Invalid API Key'], 401);
+        }
+
+        if (!$bot->is_active) {
+            return response()->json(['error' => 'Bot is currently inactive'], 403);
         }
 
         $query = $bot->chatLogs()
@@ -145,6 +153,10 @@ class WebhookController extends Controller
             return response()->json(['error' => 'Invalid API Key'], 401);
         }
 
+        if (!$bot->is_active) {
+            return response()->json(['error' => 'Bot is currently inactive'], 403);
+        }
+
         if (!empty($name) && !empty($phone)) {
             $bot->leads()->create([
                 'session_id' => $sessionId,
@@ -174,13 +186,6 @@ class WebhookController extends Controller
             'has_channel_id' => !empty($channelId)
         ]);
 
-        $bot = Bot::where('api_key', $apiKey)->first();
-
-        if (!$bot) {
-            Log::warning('Facebook webhook: Invalid API key', ['api_key' => $apiKey]);
-            return response()->json(['error' => 'Invalid API Key'], 401);
-        }
-
         $channel = $bot->channels()->find($channelId);
 
         if (!$channel) {
@@ -191,6 +196,12 @@ class WebhookController extends Controller
         // Handle verification for GET requests FIRST (Always allow Meta to verify)
         if ($request->isMethod('get')) {
             return $this->verifyWebhook($request, $channel, 'facebook');
+        }
+
+        // Kiểm tra Bot có bị tắt không (Trả về 200 OK để FB không gửi lại request liên tục)
+        if (!$bot->is_active) {
+            Log::warning('Facebook webhook: Bot inactive', ['channel_id' => $channelId]);
+            return response()->json(['status' => 'bot_disabled']);
         }
 
         // Check if active ONLY for incoming POST messages
@@ -226,6 +237,12 @@ class WebhookController extends Controller
             return response()->json(['status' => 'channel_disabled']);
         }
 
+        // Kiểm tra Bot có bị tắt không (Trả về 200 OK để FB không gửi lại request liên tục)
+        if (!$bot->is_active) {
+            Log::warning('Zalo webhook: Bot inactive', ['channel_id' => $channelId]);
+            return response()->json(['status' => 'bot_disabled']);
+        }
+
         $payload = $request->json()->all();
         $this->channelService->handleZalo($bot, $channel, $payload);
 
@@ -250,6 +267,11 @@ class WebhookController extends Controller
 
         if (!$channel || !$channel->is_active) {
             return response()->json(['status' => 'channel_disabled']);
+        }
+
+        if (!$bot->is_active) {
+            Log::warning('TikTok webhook: Bot inactive', ['channel_id' => $channelId]);
+            return response()->json(['status' => 'bot_disabled']);
         }
 
         $payload = $request->json()->all();
@@ -278,6 +300,11 @@ class WebhookController extends Controller
             return response()->json(['status' => 'channel_disabled']);
         }
 
+        if (!$bot->is_active) {
+            Log::warning('Shopee webhook: Bot inactive', ['channel_id' => $channelId]);
+            return response()->json(['status' => 'bot_disabled']);
+        }
+
         $payload = $request->json()->all();
         $this->channelService->handleShopee($bot, $channel, $payload);
 
@@ -302,6 +329,11 @@ class WebhookController extends Controller
 
         if (!$channel || !$channel->is_active) {
             return response()->json(['status' => 'channel_disabled']);
+        }
+
+        if (!$bot->is_active) {
+            Log::warning('Zalo Personal webhook: Bot inactive', ['channel_id' => $channelId]);
+            return response()->json(['status' => 'bot_disabled']);
         }
 
         $payload = $request->json()->all();
@@ -349,6 +381,11 @@ class WebhookController extends Controller
         if (!$channel->is_active) {
             Log::warning('WhatsApp webhook: Channel inactive', ['channel_id' => $channelId]);
             return response()->json(['status' => 'channel_disabled']);
+        }
+
+        if (!$bot->is_active) {
+            Log::warning('WhatsApp webhook: Bot inactive', ['channel_id' => $channelId]);
+            return response()->json(['status' => 'bot_disabled']);
         }
 
         $payload = $request->json()->all();
@@ -438,6 +475,10 @@ class WebhookController extends Controller
 
         if (!$bot) {
             return response()->json(['error' => 'Invalid API key'], 401);
+        }
+
+        if (!$bot->is_active) {
+            return response()->json(['error' => 'Bot is currently inactive'], 403);
         }
 
         // Check if there are any admin messages in this session

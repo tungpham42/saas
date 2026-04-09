@@ -335,6 +335,14 @@ class ChatController extends Controller
     {
         $this->authorizeBot($bot);
 
+        // Chặn gửi tin nhắn nếu Bot đang bị tắt
+        if (!$bot->is_active) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['error' => 'Bot is currently inactive. Please activate it to send messages.'], 403);
+            }
+            return redirect()->back()->with('error', 'Bot is currently inactive. Please activate it to send messages.');
+        }
+
         $validated = $request->validate([
             'session_id' => 'required|string',
             'message' => 'required|string',
