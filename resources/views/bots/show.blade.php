@@ -15,19 +15,37 @@
                         <i class="fas fa-robot text-amber-900 text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold text-amber-800 dark:text-amber-200">{{ $bot->name }}</h1>
+                        <h1 class="text-2xl font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2">
+                            {{ $bot->name }}
+                            @if($bot->is_active)
+                                <span class="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{{ __('Active') }}</span>
+                            @else
+                                <span class="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{{ __('Inactive') }}</span>
+                            @endif
+                        </h1>
                         <p class="text-amber-600 dark:text-amber-400 text-sm mt-1">{{ __('Your AI companion, ready to help') }}</p>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="bg-amber-50 dark:bg-gray-800 rounded-2xl px-4 py-2 flex items-center gap-2">
-            <i class="fas fa-key text-amber-500 text-xs"></i>
-            <code class="text-xs font-mono text-amber-700 dark:text-amber-300">{{ substr($bot->api_key, 0, 30) }}...</code>
-            <button onclick="copyToClipboard('{{ $bot->api_key }}', this)"
-                    class="text-amber-500 hover:text-amber-600 transition" title="{{ __('Copy API Key') }}">
-                <i class="fas fa-copy"></i>
-            </button>
+        <div class="flex items-center gap-2 flex-wrap justify-end">
+            <div class="bg-amber-50 dark:bg-gray-800 rounded-2xl px-4 py-2 flex items-center gap-2">
+                <i class="fas fa-key text-amber-500 text-xs"></i>
+                <code class="text-xs font-mono text-amber-700 dark:text-amber-300">{{ substr($bot->api_key, 0, 30) }}...</code>
+                <button onclick="copyToClipboard('{{ $bot->api_key }}', this)"
+                        class="text-amber-500 hover:text-amber-600 transition" title="{{ __('Copy API Key') }}">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('bots.toggle-status', $bot) }}" method="POST">
+                @csrf
+                @method('PATCH')
+                <button type="submit" class="{{ $bot->is_active ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200' : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200' }} rounded-2xl px-4 py-2 flex items-center gap-2 transition font-medium">
+                    <i class="fas fa-power-off"></i>
+                    <span>{{ $bot->is_active ? __('Deactivate') : __('Activate') }}</span>
+                </button>
+            </form>
         </div>
     </div>
 

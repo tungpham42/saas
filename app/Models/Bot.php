@@ -10,7 +10,7 @@ class Bot extends Model
     protected $table = 'bots';
 
     protected $fillable = [
-        'user_id', 'name', 'api_key', 'provider', 'provider_api_key', 'model',
+        'user_id', 'name', 'api_key', 'is_active', 'provider', 'provider_api_key', 'model',
         'temperature', 'max_tokens', 'prompt_persona', 'prompt_task', 'prompt_context',
         'prompt_format', 'ui_title', 'ui_welcome_msg', 'ui_placeholder', 'ui_btn_text',
         'ui_color', 'ui_bg_color', 'ui_text_color', 'ui_pos_bottom', 'ui_pos_right',
@@ -23,6 +23,7 @@ class Bot extends Model
 
     protected $casts = [
         'temperature' => 'float',
+        'is_active' => 'boolean',
         'ui_trigger_bg_transparent' => 'boolean',
         'ui_clear_on_close' => 'boolean',
         'ui_pre_chat_form' => 'boolean',

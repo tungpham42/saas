@@ -207,4 +207,21 @@ class BotController extends Controller
         Cache::forget("bot_{$bot->api_key}");
         Cache::forget("bot_config_{$bot->id}");
     }
+
+    public function toggleStatus(Bot $bot)
+    {
+        $this->authorizeBot($bot);
+
+        $bot->update([
+            'is_active' => !$bot->is_active
+        ]);
+
+        $this->clearBotCache($bot);
+
+        $message = $bot->is_active
+            ? __('Bot activated successfully.')
+            : __('Bot deactivated successfully.');
+
+        return redirect()->back()->with('success', $message);
+    }
 }

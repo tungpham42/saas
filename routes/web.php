@@ -29,6 +29,8 @@ Route::get('lang/{locale}', function ($locale) {
     return redirect()->back();
 })->name('language.switch');
 
+Route::patch('/bots/{bot}/toggle-status', [BotController::class, 'toggleStatus'])->name('bots.toggle-status');
+
 // Public routes - Landing page
 Route::get('/', function () {
     if (auth()->check()) {

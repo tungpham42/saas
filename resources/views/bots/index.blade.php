@@ -42,8 +42,13 @@
                         <div class="bg-white/20 rounded-xl p-2 group-hover:scale-110 transition-transform">
                             <i class="fas fa-robot text-amber-900 text-xl"></i>
                         </div>
-                        <div>
+                        <div class="flex items-center gap-2">
                             <h3 class="text-amber-900 font-bold text-lg">{{ $bot->name }}</h3>
+                            @if($bot->is_active)
+                                <span class="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{{ __('Active') }}</span>
+                            @else
+                                <span class="bg-gray-200 text-gray-600 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{{ __('Inactive') }}</span>
+                            @endif
                             <p class="text-amber-800/70 text-xs">{{ __('Born ') }} {{ $bot->created_at->diffForHumans() }}</p>
                         </div>
                     </div>
@@ -65,20 +70,30 @@
                     </div>
                 </div>
 
-                <div class="flex gap-2 pt-2">
+                <div class="flex flex-col gap-2 pt-2">
                     <a href="{{ route('bots.show', $bot) }}"
-                       class="flex-1 btn-soft text-center py-2 rounded-xl inline-flex items-center justify-center gap-2">
+                    class="w-full btn-soft text-center py-2 rounded-xl inline-flex items-center justify-center gap-2">
                         <i class="fas fa-heart"></i>
                         <span>{{ __('Care for Bot') }}</span>
                     </a>
-                    <form action="{{ route('bots.destroy', $bot) }}" method="POST" class="flex-1" onsubmit="return confirmDelete(this)">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="w-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 py-2 rounded-xl font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition inline-flex items-center justify-center gap-2">
-                            <i class="fas fa-trash-alt"></i>
-                            <span>{{ __('Say Goodbye') }}</span>
-                        </button>
-                    </form>
+                    <div class="flex gap-2">
+                        <form action="{{ route('bots.toggle-status', $bot) }}" method="POST" class="flex-1">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="w-full {{ $bot->is_active ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200' : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-200' }} py-2 rounded-xl font-medium transition inline-flex items-center justify-center gap-2" title="{{ $bot->is_active ? __('Deactivate') : __('Activate') }}">
+                                <i class="fas fa-power-off"></i>
+                                <span>{{ $bot->is_active ? __('Deactivate') : __('Activate') }}</span>
+                            </button>
+                        </form>
+                        <form action="{{ route('bots.destroy', $bot) }}" method="POST" class="flex-1" onsubmit="return confirmDelete(this)">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 py-2 rounded-xl font-medium hover:bg-red-200 dark:hover:bg-red-900/50 transition inline-flex items-center justify-center gap-2">
+                                <i class="fas fa-trash-alt"></i>
+                                <span>{{ __('Say Goodbye') }}</span>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
