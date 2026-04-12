@@ -270,6 +270,58 @@
         </div>
     </section>
 
+    <section id="pricing" class="py-20">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-amber-900 dark:text-amber-100">{{ __('Simple & Fair Pricing 💰') }}</h2>
+                <p class="text-xl text-amber-600 dark:text-amber-400 mt-4">{{ __('Start free, grow with us') }}</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card-warm p-8 shadow-lg hover:shadow-xl transition-all flex flex-col">
+                    <h3 class="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-4">{{ __('Standard - Tiêu chuẩn') }}</h3>
+                    <div class="text-4xl font-bold text-amber-900 dark:text-amber-100 mb-2">
+                        300,000 <span class="text-lg text-amber-600 dark:text-amber-400">VND / {{ __('per month') }}</span>
+                    </div>
+                    <ul class="mt-6 space-y-4 flex-1 text-left">
+                        <li class="flex items-start text-amber-700 dark:text-amber-300">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
+                            <span>{{ __('CSKH đa kênh 24/7/365') }}</span>
+                        </li>
+                    </ul>
+                    <a href="{{ route('register') }}" class="mt-8 btn-outline-warm px-6 py-3 rounded-full text-center font-semibold w-full block">
+                        {{ __('Get Started 💝') }}
+                    </a>
+                </div>
+
+                <div class="card-warm p-8 shadow-lg hover:shadow-xl transition-all flex flex-col relative border-2 border-amber-400 dark:border-amber-600">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <span class="gradient-warm text-amber-900 font-bold px-4 py-1 rounded-full text-sm shadow-md whitespace-nowrap">
+                            {{ __('🌟 MOST POPULAR 🌟') }}
+                        </span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-4">{{ __('Custom - Tùy chỉnh') }}</h3>
+                    <div class="text-4xl font-bold text-amber-900 dark:text-amber-100 mb-2">
+                        700,000 <span class="text-lg text-amber-600 dark:text-amber-400">VND / {{ __('per month') }}</span>
+                    </div>
+                    <ul class="mt-6 space-y-4 flex-1 text-left">
+                        <li class="flex items-start text-amber-700 dark:text-amber-300">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
+                            <span>{{ __('Bao gồm gói Standard') }}</span>
+                        </li>
+                        <li class="flex items-start text-amber-700 dark:text-amber-300">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
+                            <span>{{ __('Tùy chỉnh theo yêu cầu') }}</span>
+                        </li>
+                    </ul>
+                    <a href="{{ route('register') }}" class="mt-8 btn-warm px-6 py-3 rounded-full text-center font-semibold w-full block shadow-lg">
+                        {{ __('Get Started 💝') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <footer class="bg-amber-900 dark:bg-gray-950 py-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
