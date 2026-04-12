@@ -279,14 +279,14 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="card-warm p-8 shadow-lg hover:shadow-xl transition-all flex flex-col">
-                    <h3 class="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-4">{{ __('Standard - Tiêu chuẩn') }}</h3>
+                    <h3 class="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-4">{{ __('Standard') }}</h3>
                     <div class="text-4xl font-bold text-amber-900 dark:text-amber-100 mb-2">
                         300,000 <span class="text-lg text-amber-600 dark:text-amber-400">VND / {{ __('per month') }}</span>
                     </div>
                     <ul class="mt-6 space-y-4 flex-1 text-left">
                         <li class="flex items-start text-amber-700 dark:text-amber-300">
                             <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
-                            <span>{{ __('CSKH đa kênh 24/7/365') }}</span>
+                            <span>{{ __('Customer Support 24/7/365') }}</span>
                         </li>
                     </ul>
                     <a href="{{ route('register') }}" class="mt-8 btn-outline-warm px-6 py-3 rounded-full text-center font-semibold w-full block">
@@ -300,18 +300,18 @@
                             {{ __('🌟 MOST POPULAR 🌟') }}
                         </span>
                     </div>
-                    <h3 class="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-4">{{ __('Custom - Tùy chỉnh') }}</h3>
+                    <h3 class="text-2xl font-bold text-amber-800 dark:text-amber-200 mb-4">{{ __('Custom') }}</h3>
                     <div class="text-4xl font-bold text-amber-900 dark:text-amber-100 mb-2">
                         700,000 <span class="text-lg text-amber-600 dark:text-amber-400">VND / {{ __('per month') }}</span>
                     </div>
                     <ul class="mt-6 space-y-4 flex-1 text-left">
                         <li class="flex items-start text-amber-700 dark:text-amber-300">
                             <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
-                            <span>{{ __('Bao gồm gói Standard') }}</span>
+                            <span>{{ __('Including Standard') }}</span>
                         </li>
                         <li class="flex items-start text-amber-700 dark:text-amber-300">
                             <i class="fas fa-check text-green-500 mt-1 mr-3"></i>
-                            <span>{{ __('Tùy chỉnh theo yêu cầu') }}</span>
+                            <span>{{ __('Customization as per request') }}</span>
                         </li>
                     </ul>
                     <a href="{{ route('register') }}" class="mt-8 btn-warm px-6 py-3 rounded-full text-center font-semibold w-full block shadow-lg">

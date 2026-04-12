@@ -549,9 +549,9 @@
     "Deactivate": "Tạm dừng",
     "Bot activated successfully.": "Đã kích hoạt Bot thành công.",
     "Bot deactivated successfully.": "Đã tạm dừng Bot thành công.",
-    "Standard - Tiêu chuẩn": "Standard - Tiêu chuẩn",
-    "CSKH đa kênh 24/7/365": "CSKH đa kênh 24/7/365",
-    "Custom - Tùy chỉnh": "Custom - Tùy chỉnh",
-    "Bao gồm gói Standard": "Bao gồm gói Standard",
-    "Tùy chỉnh theo yêu cầu": "Tùy chỉnh theo yêu cầu"
+    "Standard": "Tiêu chuẩn",
+    "Customer Support 24/7/365": "CSKH đa kênh 24/7/365",
+    "Custom": "Tùy chỉnh",
+    "Including Standard": "Bao gồm gói Standard",
+    "Customization as per request": "Tùy chỉnh theo yêu cầu"
 }
