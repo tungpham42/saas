@@ -56,30 +56,48 @@
                 <div class="space-y-5">
                     <div>
                         <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">{{ __('What should we call you?') }}</label>
-                        <input type="text" name="name" x-model="form.name" required class="input-warm" placeholder="{{ __('e.g., Sarah Johnson') }}">
+                        <input type="text" name="name" x-model="form.name" required class="input-warm @error('name') !border-red-500 @enderror" placeholder="{{ __('e.g., Sarah Johnson') }}">
+                        @error('name')
+                            <p class="text-xs text-red-500 mt-1 font-medium">{{ $message }}</p>
+                        @enderror
                     </div>
+
                     <div>
                         <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">{{ __('Your Email') }}</label>
-                        <input type="email" name="email" x-model="form.email" required class="input-warm" placeholder="hello@example.com">
+                        <input type="email" name="email" x-model="form.email" required class="input-warm @error('email') !border-red-500 @enderror" placeholder="hello@example.com">
+                        @error('email')
+                            <p class="text-xs text-red-500 mt-1 font-medium">{{ $message }}</p>
+                        @enderror
                     </div>
+
                     <div>
                         <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">{{ __('Create Password') }}</label>
-                        <input type="password" name="password" x-model="form.password" required class="input-warm" placeholder="{{ __('Make it secure') }}">
+                        <input type="password" name="password" x-model="form.password" required class="input-warm @error('password') !border-red-500 @enderror" placeholder="{{ __('Make it secure') }}">
+                        @error('password')
+                            <p class="text-xs text-red-500 mt-1 font-medium">{{ $message }}</p>
+                        @enderror
                         <div class="mt-2 flex flex-wrap gap-2 text-[10px]">
                             <span :class="form.password.length >= 8 ? 'text-green-500' : 'text-amber-500'"><i class="fas fa-circle mr-1"></i>{{ __('8+ chars') }}</span>
                             <span :class="/[0-9]/.test(form.password) ? 'text-green-500' : 'text-amber-500'"><i class="fas fa-circle mr-1"></i>{{ __('Number') }}</span>
                             <span :class="/[A-Z]/.test(form.password) && /[a-z]/.test(form.password) ? 'text-green-500' : 'text-amber-500'"><i class="fas fa-circle mr-1"></i>{{ __('Mixed case') }}</span>
                         </div>
                     </div>
+
                     <div>
                         <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">{{ __('Confirm Password') }}</label>
                         <input type="password" name="password_confirmation" x-model="form.password_confirmation" required class="input-warm" placeholder="{{ __('Type it again') }}">
                         <p x-show="form.password && form.password_confirmation && form.password !== form.password_confirmation" class="text-xs text-red-500 mt-1">{{ __('Passwords don\'t match') }}</p>
                     </div>
-                    <label class="flex items-start text-xs text-amber-600 dark:text-amber-400">
-                        <input type="checkbox" x-model="form.terms" required class="mt-0.5 mr-2">
-                        <span>{{ __('I agree to the') }} <a href="#" class="underline">{{ __('Terms of Service') }}</a> {{ __('and') }} <a href="#" class="underline">{{ __('Privacy Policy') }}</a></span>
-                    </label>
+
+                    <div>
+                        <label class="flex items-start text-xs text-amber-600 dark:text-amber-400">
+                            <input type="checkbox" name="terms" x-model="form.terms" required class="mt-0.5 mr-2 @error('terms') !border-red-500 @enderror">
+                            <span>{{ __('I agree to the') }} <a href="#" class="underline">{{ __('Terms of Service') }}</a> {{ __('and') }} <a href="#" class="underline">{{ __('Privacy Policy') }}</a></span>
+                        </label>
+                        @error('terms')
+                            <p class="text-xs text-red-500 mt-1 font-medium">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
                 <button type="submit" :disabled="!isFormValid" class="btn-warm mt-6 disabled:opacity-50">{{ __('Create Account') }}</button>
             </form>
@@ -106,10 +124,24 @@
                 }
             }
         }
+
         function registerForm() {
             return {
-                form: { name: '', email: '', password: '', password_confirmation: '', terms: false },
-                get isFormValid() { return this.form.name && this.form.email && this.form.password.length >= 8 && this.form.password === this.form.password_confirmation && this.form.terms; }
+                // Pre-fill with Laravel's old() input to prevent data loss on validation errors
+                form: {
+                    name: '{{ old("name") }}',
+                    email: '{{ old("email") }}',
+                    password: '',
+                    password_confirmation: '',
+                    terms: {{ old('terms') ? 'true' : 'false' }}
+                },
+                get isFormValid() {
+                    return this.form.name &&
+                        this.form.email &&
+                        this.form.password.length >= 8 &&
+                        this.form.password === this.form.password_confirmation &&
+                        this.form.terms;
+                }
             }
         }
     </script>

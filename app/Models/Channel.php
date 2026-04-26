@@ -8,8 +8,8 @@ class Channel extends Model
 {
     protected $fillable = [
         'bot_id',
-        'type',
-        'name',
+        'channel_type',
+        'channel_name',
         'config',
         'is_active'
     ];

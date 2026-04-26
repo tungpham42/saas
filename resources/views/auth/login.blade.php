@@ -54,18 +54,36 @@
         <div class="card-warm p-8">
             <form method="POST" action="{{ route('login') }}" class="space-y-6">
                 @csrf
+
+                @if($errors->any())
+                    <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-r-xl">
+                        <p class="text-sm text-red-700 dark:text-red-400">
+                            <i class="fas fa-exclamation-circle mr-2"></i>{{ __('Please check your credentials and try again.') }}
+                        </p>
+                    </div>
+                @endif
+
                 <div>
                     <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">{{ __('Email') }}</label>
-                    <input type="email" name="email" required class="input-warm" placeholder="hello@example.com">
+                    <input type="email" name="email" value="{{ old('email') }}" required class="input-warm @error('email') !border-red-500 @enderror" placeholder="hello@example.com">
+                    @error('email')
+                        <p class="text-xs text-red-500 mt-1 font-medium">{{ $message }}</p>
+                    @enderror
                 </div>
+
                 <div>
                     <label class="block text-sm font-semibold text-amber-700 dark:text-amber-300 mb-2">{{ __('Password') }}</label>
-                    <input type="password" name="password" required class="input-warm" placeholder="••••••••">
+                    <input type="password" name="password" required class="input-warm @error('password') !border-red-500 @enderror" placeholder="••••••••">
+                    @error('password')
+                        <p class="text-xs text-red-500 mt-1 font-medium">{{ $message }}</p>
+                    @enderror
                 </div>
+
                 <label class="flex items-center cursor-pointer">
-                    <input type="checkbox" name="remember" class="w-4 h-4 text-amber-500 rounded">
+                    <input type="checkbox" name="remember" class="w-4 h-4 text-amber-500 rounded" {{ old('remember') ? 'checked' : '' }}>
                     <span class="ml-2 text-sm text-amber-600 dark:text-amber-400">{{ __('Remember me') }}</span>
                 </label>
+
                 <button type="submit" class="btn-warm">{{ __('Sign In') }}</button>
             </form>
             <p class="mt-6 text-center text-sm text-amber-600 dark:text-amber-400">
