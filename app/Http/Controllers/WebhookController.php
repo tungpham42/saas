@@ -186,6 +186,13 @@ class WebhookController extends Controller
             'has_channel_id' => !empty($channelId)
         ]);
 
+        $bot = Bot::where('api_key', $apiKey)->first();
+
+        if (!$bot) {
+            Log::warning('Facebook webhook: Invalid API key', ['api_key' => $apiKey]);
+            return response()->json(['error' => 'Invalid API Key'], 401);
+        }
+
         $channel = $bot->channels()->find($channelId);
 
         if (!$channel) {
